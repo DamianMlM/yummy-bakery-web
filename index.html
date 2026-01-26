@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yummy Bakery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ... PEGA AQUÍ TODO TU CSS QUE YA TIENES ... */
+        /* ... Asegúrate de incluir los estilos de la tarjeta, botones, modal, etc ... */
+    </style>
+</head>
+
+<body class="pb-40 antialiased">
+
+    <script>
+        // --- CONFIGURACIÓN DE CONEXIÓN ---
+
+        // ⚠️ PEGA AQUÍ LA URL QUE TE DIO GOOGLE AL IMPLEMENTAR EL SCRIPT EN LA COPIA
+        const API_URL = "https://script.google.com/macros/s/AKfycbzyfhyAte-9hx6PVxagWr8scW_HHez33MeGCKMMPfxQiaBEI_Ea2uakYhMYjaumUQVe/exec";
+
+        var PRODUCTOS = [], EXTRAS = [];
+        var carrito = [], metodoEntrega = 'recoger', metodoPago = 'efectivo', COSTO_ENVIO = 10;
+        var catActual = '';
+
+        // --- INICIO: CARGAR DATOS DESDE LA API ---
+        window.onload = function () {
+            fetch(API_URL) // Hacemos una petición GET a tu Excel
+                .then(response => response.json())
+                .then(data => {
+                    PRODUCTOS = data.productos;
+                    EXTRAS = data.extras;
+
+                    // Inicializar la App
+                    if (PRODUCTOS.length > 0) {
+                        var map = PRODUCTOS.map(p => p.cat);
+                        var categorias = map.filter((i, p) => map.indexOf(i) === p);
+                        catActual = categorias[0];
+                        renderTabs(categorias);
+                        renderMenu(catActual);
+                    } else {
+                        document.getElementById('menu-container').innerHTML = '<p class="text-center pt-10 text-gray-400">Menú vacío o error de carga.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('menu-container').innerHTML = '<p class="text-center pt-10 text-red-400">Error de conexión con la base de datos.</p>';
+                });
+
+            // Cargar Maps (Igual que antes)
+            loadMaps();
+        };
+
+        // --- FUNCIONES DE RENDERIZADO (renderTabs, renderMenu, upd, etc.) ---
+        // (Copia y pega todas tus funciones de UI aquí. Son idénticas a las que ya tienes)
+
+        // ... renderTabs ...
+        // ... renderMenu ...
+        // ... upd ...
+        // ... verResumen, cerrarModal, etc ...
+
+
+        // --- FUNCIÓN ENVIAR PEDIDO (MODIFICADA PARA API) ---
+        function enviarPedido() {
+            var nom = document.getElementById('cli-nombre').value.trim();
+            var tel = document.getElementById('cli-tel').value.trim();
+            var obs = document.getElementById('cli-obs').value.trim();
+            var dir = document.getElementById('cli-dir').value;
+
+            if (nom.length < 3) return alertUI("Faltan datos", "Escribe tu nombre.", "👤");
+            if (!/^\d{10}$/.test(tel)) return alertUI("Teléfono", "10 dígitos requeridos.", "📱");
+            if (metodoEntrega === 'envio' && dir.length < 5) return alertUI("Dirección", "Ingresa tu dirección.", "📍");
+
+            var btn = document.getElementById('btn-finalizar');
+            var txt = btn.innerText;
+            btn.innerText = "Enviando...";
+            btn.disabled = true;
+
+            var orden = {
+                cliente: { nombre: nom, tel: tel, email: document.getElementById('cli-email').value, direccion: (metodoEntrega === 'envio' ? dir : 'Recoger en tienda') },
+                metodo: metodoEntrega, pago: metodoPago, observaciones: obs,
+                carrito: carrito.map(c => ({ categoria: c.cat, nombre: c.nom, precioBase: c.base, cantidad: c.qty, extrasTexto: c.xTxt, subtotal: c.sub })),
+                total: document.getElementById('lbl-total-final').innerText
+            };
+
+            // ENVIAR A LA API POR POST
+            // Usamos 'no-cors' o text/plain para evitar problemas de preflight en Apps Script
+            fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ accion: 'nuevo_pedido', orden: orden })
+            })
+                .then(response => response.json())
+                .then(res => {
+                    if (res.success) {
+                        document.getElementById('modal-checkout').classList.add('hidden');
+                        var msg = "Orden #" + res.id + " confirmada.";
+                        if (metodoPago === 'transferencia') msg += " Paga usando el ID como concepto.";
+                        alertUI("¡Pedido Recibido!", msg, "🧡", function () { resetApp(); });
+                    } else {
+                        throw new Error(res.error || "Error desconocido");
+                    }
+                })
+                .catch(err => {
+                    alertUI("Error", "No se pudo conectar: " + err, "⚠️");
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerText = txt;
+                });
+        }
+    </script>
+</body>
+
+</html>
