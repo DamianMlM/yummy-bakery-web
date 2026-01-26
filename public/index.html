@@ -538,8 +538,10 @@
       // LLAMADA API A GOOGLE
       fetch(API_URL, {
         method: 'POST',
+        // Agregamos esto para asegurar que llegue como JSON limpio:
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ accion: 'nuevo_pedido', orden: orden }),
-        mode: 'no-cors' // Importante para Google Apps Script
+        // BORRA LA LÍNEA DE mode: 'no-cors'
       })
         .then(() => {
           document.getElementById('modal-checkout').classList.add('hidden');
