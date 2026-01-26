@@ -550,7 +550,8 @@
           alertUI("¡Pedido Recibido!", msg, "🧡", function () { resetApp(); });
         })
         .catch(err => {
-          alertUI("Error", "Intenta de nuevo o contáctanos.", "⚠️");
+          console.error(err); // Para verlo en consola
+          alertUI("Error Técnico", err.toString(), "💀"); // Para verlo en pantalla
         })
         .finally(() => {
           btn.disabled = false; btn.innerText = txt;
