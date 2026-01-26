@@ -535,23 +535,36 @@
         total: document.getElementById('lbl-total-final').innerText
       };
 
-      // LLAMADA API A GOOGLE
+      // LLAMADA API A GOOGLE (VERSIÓN ANTI-BLOQUEO)
       fetch(API_URL, {
-        method: 'POST',
-        // Agregamos esto para asegurar que llegue como JSON limpio:
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ accion: 'nuevo_pedido', orden: orden }),
-        // BORRA LA LÍNEA DE mode: 'no-cors'
+        method: "POST",
+        redirect: "follow", // Importante para que siga a Google
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8" // ⚠️ EL TRUCO MAESTRO
+        },
+        body: JSON.stringify({ accion: 'nuevo_pedido', orden: orden })
       })
-        .then(() => {
+        .then(response => {
+          // Si la respuesta no es ok, lanzamos error manual
+          if (!response.ok) { throw new Error("Error en servidor: " + response.status); }
+          return response.json();
+        })
+        .then(data => {
+          // Si Google nos devuelve un error lógico
+          if (data.error) { throw new Error(data.error); }
+
           document.getElementById('modal-checkout').classList.add('hidden');
-          var msg = "Orden Enviada.";
-          if (metodoPago === 'transferencia') msg += " Paga usando el ID como concepto.";
-          alertUI("¡Pedido Recibido!", msg, "🧡", function () { resetApp(); });
+          var msg = "Orden Enviada Correctamente.";
+          if (metodoPago === 'transferencia') msg += " Recuerda pagar a la cuenta NU.";
+
+          alertUI("¡Pedido Recibido!", msg, "🧡", function () {
+            resetApp();
+          });
         })
         .catch(err => {
-          console.error(err); // Para verlo en consola
-          alertUI("Error Técnico", err.toString(), "💀"); // Para verlo en pantalla
+          console.error("Error Fetch:", err);
+          // Si falla el fetch, intentamos el modo de emergencia (sin leer respuesta)
+          alertUI("Nota Técnica", "Si no recibiste confirmación, por favor manda captura por WhatsApp.", "⚠️");
         })
         .finally(() => {
           btn.disabled = false; btn.innerText = txt;
