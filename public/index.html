@@ -518,16 +518,23 @@
       document.getElementById('alert-btn').onclick = function () { a.classList.add('hidden'); if (cb) cb(); };
     }
     function enviarPedido() {
+      // 1. Validaciones
       var nom = document.getElementById('cli-nombre').value.trim();
       var tel = document.getElementById('cli-tel').value.trim();
       var obs = document.getElementById('cli-obs').value.trim();
       var dir = document.getElementById('cli-dir').value;
+
       if (nom.length < 3) return alertUI("Faltan datos", "Escribe tu nombre.", "👤");
       if (!/^\d{10}$/.test(tel)) return alertUI("Teléfono", "10 dígitos requeridos.", "📱");
       if (metodoEntrega === 'envio' && dir.length < 5) return alertUI("Dirección", "Ingresa tu dirección.", "📍");
 
-      var btn = document.getElementById('btn-finalizar'); var txt = btn.innerText; btn.innerText = "Enviando..."; btn.disabled = true;
+      // 2. Bloquear botón
+      var btn = document.getElementById('btn-finalizar');
+      var txt = btn.innerText;
+      btn.innerText = "Enviando...";
+      btn.disabled = true;
 
+      // 3. Preparar datos
       var orden = {
         cliente: { nombre: nom, tel: tel, email: document.getElementById('cli-email').value, direccion: (metodoEntrega === 'envio' ? dir : 'Recoger en tienda') },
         metodo: metodoEntrega, pago: metodoPago, observaciones: obs,
@@ -535,36 +542,29 @@
         total: document.getElementById('lbl-total-final').innerText
       };
 
-      // LLAMADA API A GOOGLE (VERSIÓN ANTI-BLOQUEO)
+      // 4. ENVIAR A GOOGLE (MODO NO-CORS / DISPARA Y OLVIDA)
       fetch(API_URL, {
         method: "POST",
-        redirect: "follow", // Importante para que siga a Google
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8" // ⚠️ EL TRUCO MAESTRO
-        },
+        mode: "no-cors", // <--- ESTO ES LO QUE TE FALTABA
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ accion: 'nuevo_pedido', orden: orden })
       })
-        .then(response => {
-          // Si la respuesta no es ok, lanzamos error manual
-          if (!response.ok) { throw new Error("Error en servidor: " + response.status); }
-          return response.json();
-        })
-        .then(data => {
-          // Si Google nos devuelve un error lógico
-          if (data.error) { throw new Error(data.error); }
+        .then(() => {
+          // En modo no-cors, SIEMPRE entra aquí si se envió la petición.
+          // No podemos leer la respuesta de Google, así que asumimos éxito.
 
           document.getElementById('modal-checkout').classList.add('hidden');
-          var msg = "Orden Enviada Correctamente.";
-          if (metodoPago === 'transferencia') msg += " Recuerda pagar a la cuenta NU.";
 
-          alertUI("¡Pedido Recibido!", msg, "🧡", function () {
+          var msg = "Tu pedido ha sido enviado a cocina.";
+          if (metodoPago === 'transferencia') msg += " Realiza tu pago a la cuenta NU.";
+
+          alertUI("¡Pedido Recibido!", msg, "🚀", function () {
             resetApp();
           });
         })
         .catch(err => {
-          console.error("Error Fetch:", err);
-          // Si falla el fetch, intentamos el modo de emergencia (sin leer respuesta)
-          alertUI("Nota Técnica", "Si no recibiste confirmación, por favor manda captura por WhatsApp.", "⚠️");
+          console.error(err);
+          alertUI("Error de Red", "Revisa tu conexión a internet.", "📶");
         })
         .finally(() => {
           btn.disabled = false; btn.innerText = txt;
