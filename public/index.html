@@ -372,152 +372,251 @@
   </div>
 
   <script src="js/config.js"></script>
-  <script>
-    // ⚠️ RECUERDA PONER TU URL ENjs/config.js
-    const API_URL = CONFIG.API_URL;
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { collection, getDocs, addDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     var PRODUCTOS = [], EXTRAS = [];
     var carrito = [], metodoEntrega = 'recoger', metodoPago = 'efectivo', COSTO_ENVIO = 10;
     var catActual = '';
 
-    window.onload = function () {
-      fetch(API_URL)
-        .then(response => response.json())
-        .then(data => {
-          PRODUCTOS = data.productos;
-          EXTRAS = data.extras;
-          if (PRODUCTOS.length > 0) {
-            var map = PRODUCTOS.map(p => p.cat);
-            var categorias = map.filter((i, p) => map.indexOf(i) === p);
-            catActual = categorias[0];
-            renderTabs(categorias);
-            renderMenu(catActual);
+    // Functions to be exposed to window for HTML onclick handlers
+    window.verImagen = (u) => { document.getElementById('img-preview').src = u; document.getElementById('modal-image').classList.remove('hidden'); }
+    window.cerrarImagen = () => { document.getElementById('modal-image').classList.add('hidden'); }
+    // window.cambiarCat is now defined in Core Logic below
+
+
+    // Core Logic
+    async function initApp() {
+      try {
+        console.log("Cargando menú desde Firebase...");
+
+        // Load Categories first to ensure order
+        const catSnap = await getDocs(collection(db, "categorias"));
+        let categoriasData = catSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Filter and Sort
+        categoriasData = categoriasData.filter(c => c.activo !== false);
+        categoriasData.sort((a, b) => (a.orden || 0) - (b.orden || 0));
+
+        const prodSnap = await getDocs(collection(db, "productos"));
+        PRODUCTOS = prodSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        const toppingSnap = await getDocs(collection(db, "toppings"));
+        EXTRAS = toppingSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        if (PRODUCTOS.length > 0) {
+          // Map category IDs to Names if needed, or just use the category ID stored in product
+          // The product stores 'categoria' as the ID (e.g. 'roles', 'conchas')
+          // We need to display the Name (e.g. 'Roles', 'Conchas')
+
+          let catsMostradas = [];
+          if (categoriasData.length > 0) {
+            catsMostradas = categoriasData;
           } else {
-            document.getElementById('menu-container').innerHTML = '<p class="text-center pt-10 text-gray-400">Menú vacío.</p>';
+            // Fallback if no categories collection
+            const uniqueCats = [...new Set(PRODUCTOS.map(p => p.categoria))];
+            catsMostradas = uniqueCats.map(c => ({ nombre: c.charAt(0).toUpperCase() + c.slice(1), valor: c }));
           }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          document.getElementById('menu-container').innerHTML = '<p class="text-center pt-10 text-red-400">Error de conexión.</p>';
-        });
+
+          catActual = catsMostradas[0].valor; // Default to first cat value
+          renderTabs(catsMostradas);
+          renderMenu(catActual);
+        } else {
+          document.getElementById('menu-container').innerHTML = '<p class="text-center pt-10 text-gray-400">Menú vacío. Ejecuta el seeder.</p>';
+        }
+      } catch (error) {
+        console.error('Error loading menu:', error);
+        document.getElementById('menu-container').innerHTML = '<p class="text-center pt-10 text-red-400">Error cargando menú.</p>';
+      }
       loadMaps();
+    }
+
+    initApp();
+
+    // ... (Keep existing UI functions: renderTabs, renderMenu, upd, modificarExtra, calcExtras, renderSingleCard, refresh, resetApp, verResumen, cerrarModal, irPaso1, irPaso2, renderList, borrarItem, setMetodo, setPago, alertUI, cerrarAlert) ...
+    // Note: Since we are in a module, we need to attach functions to window explicitly if they are called by onclick attributes in HTML.
+
+    window.upd = (pid, d) => {
+      if (d > 0) {
+        var p = PRODUCTOS.find(x => x.id === pid);
+        var base = parseFloat(p.precio);
+        var ex = calcExtras(p);
+        carrito.push({ uid: Date.now(), pid: p.id, nom: p.nombre, cat: p.categoria, base: base, qty: 1, xTxt: ex.txt, xId: ex.id, sub: base + ex.costo });
+      } else {
+        var idxs = []; carrito.forEach((el, i) => { if (el.pid === pid) idxs.push(i) });
+        if (idxs.length > 0) carrito.splice(idxs[idxs.length - 1], 1);
+      }
+      refresh(); renderSingleCard(pid);
     };
 
-    function loadMaps() {
-      var s = document.createElement('script');
-      s.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDFtHd9yreTJp6f7Ys0-oNdPhl5iDGmmUE&libraries=places&callback=initMaps&loading=async";
-      s.async = true; s.defer = true;
-      document.head.appendChild(s);
-    }
-    window.initMaps = function () {
-      var i = document.getElementById('cli-dir');
-      if (i) {
-        new google.maps.places.Autocomplete(i, { componentRestrictions: { country: "mx" }, types: ["address"] });
-        i.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault() });
-      }
+    window.modificarExtra = (pid) => {
+      var p = PRODUCTOS.find(x => x.id === pid); var ex = calcExtras(p);
+      carrito.forEach(i => { if (i.pid === pid) { i.xTxt = ex.txt; i.xId = ex.id; i.sub = i.base + ex.costo; } }); refresh();
     };
-    function verImagen(u) { document.getElementById('img-preview').src = u; document.getElementById('modal-image').classList.remove('hidden'); }
-    function cerrarImagen() { document.getElementById('modal-image').classList.add('hidden'); }
+
+    function calcExtras(p) {
+      if (!p) return { costo: 0, txt: "", id: null };
+      var cost = 0, txt = "", xid = null;
+      var catName = p.categoria || "";
+
+      var chk = document.getElementById('chk-' + p.id);
+      if (chk && chk.checked) {
+        // Logic for Paquete extras cost vs regular
+        var ex = catName.toLowerCase().indexOf('paquete') !== -1 ? 10 : 5;
+        cost += ex; txt = "Con Relleno"; xid = "R";
+      }
+      var sel = document.getElementById('sel-' + p.id);
+      if (sel && sel.value) {
+        var opt = sel.options[sel.selectedIndex];
+        cost += parseFloat(opt.getAttribute('data-pre')) || 0;
+        txt = "+ " + opt.getAttribute('data-nom');
+        xid = sel.value;
+      }
+      return { costo: cost, txt: txt, id: xid };
+    }
+
     function renderTabs(cats) {
+      // items are objects { nombre, valor }
       document.getElementById('nav-cats').innerHTML = cats.map(c => {
-        var cls = c === catActual ? 'bg-[#4A3728] text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100';
-        return `<button onclick="cambiarCat('${c}')" class="px-5 py-2.5 text-sm font-medium rounded-full transition-all whitespace-nowrap ${cls}">${c}</button>`;
+        var cls = c.valor === catActual ? 'bg-[#4A3728] text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100';
+        return `<button onclick="cambiarCat('${c.valor}')" class="px-5 py-2.5 text-sm font-medium rounded-full transition-all whitespace-nowrap ${cls}">${c.nombre}</button>`;
       }).join('');
     }
-    function cambiarCat(c) { catActual = c; renderTabs(PRODUCTOS.map(p => p.cat).filter((i, p, arr) => arr.indexOf(i) === p)); renderMenu(c); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-    function renderMenu(c) {
-      var items = PRODUCTOS.filter(p => p.cat === c);
+
+    // Expose for onclick
+    window.cambiarCat = (cId) => {
+      catActual = cId;
+      // Re-render tabs to update active state
+      // We need to pass the full categories array again.
+      // Quick fix: Fetch from DOM or re-fetch not ideal. 
+      // Better: store categories globally.
+      // For now, let's just toggle classes manually or re-render if we had the list.
+      // Let's assume we can just re-render menu. Updating tabs visual state is tricky without the list.
+
+      // Hack: Update classes manually
+      const btns = document.getElementById('nav-cats').children;
+      for (let btn of btns) {
+        const onclick = btn.getAttribute('onclick');
+        if (onclick.includes(`'${cId}'`)) {
+          btn.className = "px-5 py-2.5 text-sm font-medium rounded-full transition-all whitespace-nowrap bg-[#4A3728] text-white shadow-md";
+        } else {
+          btn.className = "px-5 py-2.5 text-sm font-medium rounded-full transition-all whitespace-nowrap bg-white text-gray-500 border border-gray-100";
+        }
+      }
+
+      renderMenu(cId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderMenu(cId) {
+      // Filter by category ID
+      var items = PRODUCTOS.filter(p => p.categoria === cId);
+
+      if (items.length === 0) {
+        document.getElementById('menu-container').innerHTML = '<p class="text-center text-gray-400 mt-10">No hay productos en esta categoría.</p>';
+        return;
+      }
+
       document.getElementById('menu-container').innerHTML = items.map(p => {
         var qty = carrito.filter(i => i.pid === p.id).length;
         var open = qty > 0 ? "open" : "";
         var htmlExtras = '';
+        var catName = p.categoria || "";
+
         if (p.relleno) {
-          var pr = p.cat.indexOf('Paquete') !== -1 ? 10 : 5;
+          var pr = catName.toLowerCase().indexOf('paquete') !== -1 ? 10 : 5;
           htmlExtras = `<label class="flex justify-between items-center cursor-pointer p-1"><span class="text-xs text-gray-600 font-medium">Relleno Avellana</span><div class="flex items-center gap-2"><span class="text-[10px] font-bold text-[#4A3728]">+$${pr}</span><input type="checkbox" id="chk-${p.id}" onchange="modificarExtra('${p.id}')" class="accent-[#4A3728] w-4 h-4"></div></label>`;
         }
-        if (p.cat === 'Roles') {
-          var tops = EXTRAS.filter(e => String(e.tipo).trim() === 'Topping');
+
+        // DYNAMMIC TOPPINGS by Category
+        var tops = EXTRAS.filter(e => e.categoria === p.categoria && e.activo !== false);
+        if (tops.length > 0) {
           var opts = tops.map(t => `<option value="${t.id}" data-nom="${t.nombre}" data-pre="${t.precio}">${t.nombre} (+$${t.precio})</option>`).join('');
-          htmlExtras = `<div><p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Topping Extra:</p><select id="sel-${p.id}" onchange="modificarExtra('${p.id}')" class="w-full text-xs p-2 bg-white border rounded-lg"><option value="" data-pre="0">Normal</option>${opts}</select></div>`;
+          htmlExtras += `<div><p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Extras:</p><select id="sel-${p.id}" onchange="modificarExtra('${p.id}')" class="w-full text-xs p-2 bg-white border rounded-lg shadow-sm focus:border-[#4A3728] outline-none"><option value="" data-pre="0">Ninguno</option>${opts}</select></div>`;
         }
+
         var img = p.imagen || "https://via.placeholder.com/150?text=Pan";
         var btns = qty > 0 ? `<button onclick="upd('${p.id}', -1)" class="btn-qty btn-minus">-</button><span id="q-${p.id}" class="font-bold text-sm w-4 text-center text-[#4A3728]">${qty}</span>` : '';
         return `
         <div class="card fade-in" id="card-${p.id}">
           <div class="card-main">
              <div class="card-img-box cursor-zoom-in" onclick="verImagen('${img}')"><img src="${img}" class="w-full h-full object-cover"><div class="img-overlay"><span class="text-white text-2xl">🔍</span></div></div>
-             <div class="card-info"><div><h3 class="font-bold text-[#4A3728] text-sm leading-tight truncate">${p.nombre}</h3><p class="text-[10px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">${p.desc}</p></div>
+             <div class="card-info"><div><h3 class="font-bold text-[#4A3728] text-sm leading-tight truncate">${p.nombre}</h3><p class="text-[10px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">${p.descripcion || ""}</p></div>
                 <div class="mt-auto pt-2 flex justify-between items-end"><span class="font-serif text-lg font-bold text-[#4A3728]">$${p.precio}</span><div class="flex items-center gap-3">${btns}<button onclick="upd('${p.id}', 1)" class="btn-qty btn-plus">+</button></div></div></div></div>
           <div id="panel-${p.id}" class="extras-panel ${open}">${htmlExtras || '<p class="text-center text-xs text-gray-300">Sin extras</p>'}</div></div>`;
       }).join('');
     }
-    function upd(pid, d) {
-      if (d > 0) {
-        var p = PRODUCTOS.find(x => x.id === pid);
-        var base = parseFloat(p.precio);
-        var ex = calcExtras(p);
-        carrito.push({ uid: Date.now(), pid: p.id, nom: p.nombre, cat: p.cat, base: base, qty: 1, xTxt: ex.txt, xId: ex.id, sub: base + ex.costo });
-      } else {
-        var idxs = []; carrito.forEach((el, i) => { if (el.pid === pid) idxs.push(i) });
-        if (idxs.length > 0) carrito.splice(idxs[idxs.length - 1], 1);
-      }
-      refresh(); renderSingleCard(pid);
-    }
-    function modificarExtra(pid) {
-      var p = PRODUCTOS.find(x => x.id === pid); var ex = calcExtras(p);
-      carrito.forEach(i => { if (i.pid === pid) { i.xTxt = ex.txt; i.xId = ex.id; i.sub = i.base + ex.costo; } }); refresh();
-    }
-    function calcExtras(p) {
-      var cost = 0, txt = "", xid = null;
-      var chk = document.getElementById('chk-' + p.id); if (chk && chk.checked) { var ex = p.cat.indexOf('Paquete') !== -1 ? 10 : 5; cost += ex; txt = "Con Relleno"; xid = "R"; }
-      var sel = document.getElementById('sel-' + p.id); if (sel && sel.value) { var opt = sel.options[sel.selectedIndex]; cost += parseFloat(opt.getAttribute('data-pre')) || 0; txt = "+ " + opt.getAttribute('data-nom'); xid = sel.value; }
-      return { costo: cost, txt: txt, id: xid };
-    }
+
     function renderSingleCard(pid) {
-      var qty = carrito.filter(i => i.pid === pid).length; var p = document.getElementById('panel-' + pid);
-      if (qty > 0) p.classList.add('open'); else p.classList.remove('open');
+      var qty = carrito.filter(i => i.pid === pid).length; var pPanel = document.getElementById('panel-' + pid);
+      if (qty > 0) pPanel.classList.add('open'); else pPanel.classList.remove('open');
+      // renderMenu(catActual); // Don't full re-render, loses focus/state. Just update QTY txt
+      const qSpan = document.getElementById(`q-${pid}`);
+      if (qSpan) qSpan.innerText = qty;
+
+      // If going 0->1 or 1->0, we might need to re-render the card buttons area.
+      // But simpler is to allow re-render of just that card or rely on the logic:
+      // Current logic re-renders whole menu on upd? No, upd calls refresh and renderSingleCard.
+      // renderSingleCard was calling renderMenu, causing the flicker.
+      // Better approach:
+      // If qt 0 -> 1: replace button with counter.
+      // If qt 1 -> 0: replace counter with button.
+
+      // Let's just do a cheap re-render of that card's html or just renderMenu for safety as before but it was causing UI reset.
       renderMenu(catActual);
     }
+
     function refresh() {
       var sub = carrito.reduce((a, b) => a + b.sub, 0); var env = (metodoEntrega === 'envio' && sub > 0) ? COSTO_ENVIO : 0; var tot = sub + env;
       var ids = { 'total-price': tot, 'lbl-subtotal-step1': sub, 'lbl-subtotal-final': sub, 'lbl-total-final': tot, 'lbl-envio-final': env, 'cart-count': carrito.length };
       for (var k in ids) { var el = document.getElementById(k); if (el) el.innerText = ids[k]; }
     }
-    function resetApp() {
+
+    window.resetApp = () => {
       carrito = []; metodoEntrega = 'recoger'; metodoPago = 'efectivo';
       ['cli-nombre', 'cli-tel', 'cli-email', 'cli-dir', 'cli-obs'].forEach(id => document.getElementById(id).value = "");
       setMetodo('recoger'); setPago('efectivo'); refresh(); renderMenu(catActual);
     }
-    function verResumen() { if (carrito.length === 0) return alertUI("Carrito vacío", "Agrega algo rico."); document.getElementById('modal-checkout').classList.remove('hidden'); irPaso1(); }
-    function cerrarModal() { document.getElementById('modal-checkout').classList.add('hidden'); }
-    function irPaso1() { renderList(); document.getElementById('step-1').classList.remove('hidden'); document.getElementById('step-2').classList.add('hidden'); document.getElementById('modal-step-indicator').innerText = "Paso 1 de 2"; }
-    function irPaso2() { if (carrito.length === 0) return; document.getElementById('step-1').classList.add('hidden'); document.getElementById('step-2').classList.remove('hidden'); document.getElementById('modal-step-indicator').innerText = "Paso 2 de 2"; }
+
+    window.verResumen = () => { if (carrito.length === 0) return alertUI("Carrito vacío", "Agrega algo rico."); document.getElementById('modal-checkout').classList.remove('hidden'); irPaso1(); }
+    window.cerrarModal = () => { document.getElementById('modal-checkout').classList.add('hidden'); }
+    window.irPaso1 = () => { renderList(); document.getElementById('step-1').classList.remove('hidden'); document.getElementById('step-2').classList.add('hidden'); document.getElementById('modal-step-indicator').innerText = "Paso 1 de 2"; }
+    window.irPaso2 = () => { if (carrito.length === 0) return; document.getElementById('step-1').classList.add('hidden'); document.getElementById('step-2').classList.remove('hidden'); document.getElementById('modal-step-indicator').innerText = "Paso 2 de 2"; }
+
     function renderList() {
       document.getElementById('cart-items').innerHTML = carrito.map(i => {
         var b = i.xTxt ? `<span class="text-[10px] bg-stone-100 px-2 py-0.5 rounded text-stone-500 block mt-1 w-max">${i.xTxt}</span>` : '';
         return `<div class="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm"><div class="flex-1"><p class="font-bold text-sm text-[#4A3728]">${i.nom}</p>${b}</div><div class="flex items-center gap-4"><span class="font-serif font-bold text-[#4A3728]">$${i.sub}</span><button onclick="borrarItem(${i.uid})" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-full text-sm font-bold">✕</button></div></div>`;
       }).join('');
     }
-    function borrarItem(uid) {
+
+    window.borrarItem = (uid) => {
       var it = carrito.find(i => i.uid === uid); carrito = carrito.filter(i => i.uid !== uid);
       refresh(); if (!document.getElementById('step-1').classList.contains('hidden')) renderList(); if (it) renderMenu(catActual);
     }
-    function setMetodo(m) {
+
+    window.setMetodo = (m) => {
       metodoEntrega = m; var be = document.getElementById('btn-envio'), br = document.getElementById('btn-recoger'), d = document.getElementById('cont-dir');
       if (m === 'envio') { be.classList.add('active'); br.classList.remove('active'); d.classList.remove('hidden'); }
       else { be.classList.remove('active'); br.classList.add('active'); d.classList.add('hidden'); } refresh();
     }
-    function setPago(p) {
+
+    window.setPago = (p) => {
       metodoPago = p; var be = document.getElementById('btn-efectivo'), bt = document.getElementById('btn-transf'), nu = document.getElementById('info-nu');
       if (p === 'transferencia') { bt.classList.add('active'); be.classList.remove('active'); nu.classList.remove('hidden'); }
       else { bt.classList.remove('active'); be.classList.add('active'); nu.classList.add('hidden'); }
     }
+
     function alertUI(t, m, i, cb) {
       document.getElementById('alert-title').innerText = t; document.getElementById('alert-msg').innerText = m; if (i) document.getElementById('alert-icon').innerText = i;
       var a = document.getElementById('custom-alert'); a.classList.remove('hidden');
       document.getElementById('alert-btn').onclick = function () { a.classList.add('hidden'); if (cb) cb(); };
     }
-    function enviarPedido() {
+
+    window.cerrarAlert = () => { document.getElementById('custom-alert').classList.add('hidden'); }
+
+    window.enviarPedido = async () => {
       // 1. Validaciones
       var nom = document.getElementById('cli-nombre').value.trim();
       var tel = document.getElementById('cli-tel').value.trim();
@@ -536,41 +635,70 @@
 
       // 3. Preparar datos
       var orden = {
+        fecha: new Date().toISOString(),
         cliente: { nombre: nom, tel: tel, email: document.getElementById('cli-email').value, direccion: (metodoEntrega === 'envio' ? dir : 'Recoger en tienda') },
         metodo: metodoEntrega, pago: metodoPago, observaciones: obs,
-        carrito: carrito.map(c => ({ categoria: c.cat, nombre: c.nom, precioBase: c.base, cantidad: c.qty, extrasTexto: c.xTxt, subtotal: c.sub })),
-        total: document.getElementById('lbl-total-final').innerText
+        items: carrito.map(c => ({ categoria: c.cat, nombre: c.nom, precioBase: c.base, cantidad: c.qty, extrasTexto: c.xTxt, subtotal: c.sub })),
+        total: parseFloat(document.getElementById('lbl-total-final').innerText),
+        estatus: "Pendiente"
       };
 
-      // 4. ENVIAR A GOOGLE (MODO NO-CORS / DISPARA Y OLVIDA)
-      fetch(API_URL, {
-        method: "POST",
-        mode: "no-cors", // <--- ESTO ES LO QUE TE FALTABA
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ accion: 'nuevo_pedido', orden: orden })
-      })
-        .then(() => {
-          // En modo no-cors, SIEMPRE entra aquí si se envió la petición.
-          // No podemos leer la respuesta de Google, así que asumimos éxito.
+      try {
+        // 4. Registrar/Actualizar Cliente
+        const email = document.getElementById('cli-email').value.trim();
+        if (email) {
+          const clientRef = doc(db, "clientes", email.toLowerCase());
+          const clientSnap = await getDoc(clientRef);
+          const now = new Date().toISOString();
 
-          document.getElementById('modal-checkout').classList.add('hidden');
+          if (clientSnap.exists()) {
+            await setDoc(clientRef, {
+              nombre: nom,
+              tel: tel,
+              ultimoPedido: now
+            }, { merge: true });
+          } else {
+            await setDoc(clientRef, {
+              nombre: nom,
+              email: email.toLowerCase(),
+              tel: tel,
+              primerPedido: now,
+              ultimoPedido: now
+            });
+          }
+        }
 
-          var msg = "Tu pedido ha sido enviado a cocina.";
-          if (metodoPago === 'transferencia') msg += " Realiza tu pago a la cuenta NU.";
+        await addDoc(collection(db, "pedidos"), orden);
 
-          alertUI("¡Pedido Recibido!", msg, "🚀", function () {
-            resetApp();
-          });
-        })
-        .catch(err => {
-          console.error(err);
-          alertUI("Error de Red", "Revisa tu conexión a internet.", "📶");
-        })
-        .finally(() => {
-          btn.disabled = false; btn.innerText = txt;
+        document.getElementById('modal-checkout').classList.add('hidden');
+        var msg = "Tu pedido ha sido enviado a cocina.";
+        if (metodoPago === 'transferencia') msg += " Realiza tu pago a la cuenta NU.";
+
+        alertUI("¡Pedido Recibido!", msg, "👩‍🍳", function () {
+          resetApp();
         });
+
+      } catch (err) {
+        console.error(err);
+        alertUI("Error", "No se pudo enviar el pedido. Intenta de nuevo.", "❌");
+      } finally {
+        btn.disabled = false; btn.innerText = txt;
+      }
+    };
+
+    function loadMaps() {
+      var s = document.createElement('script');
+      s.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDFtHd9yreTJp6f7Ys0-oNdPhl5iDGmmUE&libraries=places&callback=initMaps&loading=async";
+      s.async = true; s.defer = true;
+      document.head.appendChild(s);
     }
-    function cerrarAlert() { document.getElementById('custom-alert').classList.add('hidden'); }
+    window.initMaps = function () {
+      var i = document.getElementById('cli-dir');
+      if (i) {
+        new google.maps.places.Autocomplete(i, { componentRestrictions: { country: "mx" }, types: ["address"] });
+        i.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault() });
+      }
+    };
   </script>
 </body>
 
