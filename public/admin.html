@@ -828,24 +828,22 @@
                                 <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
                                 <p class="text-xs text-gray-500">Click para subir imagen</p>
                             </div>
-                        </div>
+                        </div> <!-- close imagen container -->
                     </div>
 
+                    <div class="pt-6 flex gap-3">
+                        <button type="button" onclick="cerrarModalProducto()"
+                            class="flex-1 py-3 rounded-2xl text-gray-400 font-bold hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="submit"
+                            class="flex-[2] py-3 rounded-2xl bg-yummy-brown text-white font-bold shadow-lg hover:shadow-xl transition-all">
+                            Guardar Producto
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <div class="pt-6 flex gap-3">
-                <button type="button" onclick="cerrarModalProducto()"
-                    class="flex-1 py-3 rounded-2xl text-gray-400 font-bold hover:bg-gray-50 transition-colors">
-                    Cancelar
-                </button>
-                <button type="submit"
-                    class="flex-[2] py-3 rounded-2xl bg-yummy-brown text-white font-bold shadow-lg hover:shadow-xl transition-all">
-                    Guardar Producto
-                </button>
-            </div>
-            </form>
         </div>
-    </div>
     </div>
 
     <!-- MODAL CATEGORIAS -->
@@ -1015,15 +1013,14 @@
                         <!-- Grouped by category -->
                     </div>
 
-                    <div class="pt-4 text-center">
-                        <button onclick="cerrarModalToppings()"
-                            class="text-gray-400 hover:text-gray-600 font-medium">Cerrar</button>
-                    </div>
+                    <button onclick="cerrarModalToppings()"
+                        class="text-gray-400 hover:text-gray-600 font-medium">Cerrar</button>
                 </div>
             </div>
+        </div>
 
-            <script src="js/config.js"></script>
-            <script type="module" src="js/admin.js"></script>
+        <script src="js/config.js"></script>
+        <script type="module" src="js/admin.js"></script>
 </body>
 
 </html>

@@ -676,6 +676,7 @@ function renderProduction() {
 // 🕹️ INTERACCION
 // ==========================================
 window.switchView = function (view) {
+    console.log("Switching to view:", view);
     // Hide all views
     document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
 
@@ -727,8 +728,12 @@ window.switchView = function (view) {
 // 🍎 PRODUCTOS CRUD
 // ==========================================
 async function renderProducts() {
+    console.log("Rendering products...");
     const tbody = document.getElementById('productos-list-body');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error("Target tbody #productos-list-body not found!");
+        return;
+    }
 
     tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-yummy-brown"></i></td></tr>`;
 
