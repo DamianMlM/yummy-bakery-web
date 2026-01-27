@@ -944,78 +944,10 @@ window.removeImage = function () {
     resetImagePreview();
 }
 
-// Form Submit
-const formProd = document.getElementById('form-producto');
-if (formProd) {
-    formProd.addEventListener('submit', async (e) => {
-        e.preventDefault();
+// Obsoleto - Movido a setupEventListeners
 
-        const id = document.getElementById('prod-id').value;
-        const nombre = document.getElementById('prod-nombre').value;
-        const categoria = document.getElementById('prod-categoria').value;
-        const precio = document.getElementById('prod-precio').value;
-        const descripcion = document.getElementById('prod-descripcion').value;
-        const file = document.getElementById('prod-imagen').files[0];
 
-        // Handling existing image logic
-        let existingImg = "";
-        if (id) {
-            const p = STATE.productsRaw.find(x => x.id === id);
-            if (p) existingImg = p.imagen;
-        }
-
-        // If preview is hidden, it means user removed image or there wasn't one.
-        // If preview is showing a DATA URL (starts with data:), it's a new file.
-        // If preview is showing a HTTP URL, it's the existing image.
-        const previewSrc = document.getElementById('img-preview').src;
-        const hasVisibleImage = !document.getElementById('img-preview-container').classList.contains('hidden');
-
-        // If NO visible image, we want to save empty string (remove image).
-        // If visible image IS existing URL, keep it.
-        // If visible image is Data URL, we wait for ProductsManager to upload 'file'.
-
-        let finalOldImage = "";
-        if (hasVisibleImage) {
-            if (previewSrc.startsWith('http')) finalOldImage = previewSrc;
-            // if starts with data:, ignored here, 'file' will be used
-        }
-
-        const productData = {
-            id: id || null,
-            nombre,
-            categoria,
-            precio,
-            descripcion,
-            imagen: finalOldImage // Passed as fallback if no new file
-        };
-
-        try {
-            // Show loading
-            Swal.fire({
-                title: 'Guardando...',
-                text: 'Subiendo imagen y guardando datos',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
-
-            await ProductsManager.saveProduct(productData, file);
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Guardado',
-                showConfirmButton: false,
-                timer: 1500
-            });
-
-            cerrarModalProducto();
-            renderProducts();
-
-        } catch (error) {
-            console.error(error);
-            Swal.fire('Error', 'No se pudo guardar el producto', 'error');
-        }
-    });
-}
+// Image handling logic below
 
 // ==========================================
 // 📂 CATEGORIAS MANAGEMENT logic
@@ -1089,33 +1021,7 @@ window.updateCatProp = async function (id, prop, value) {
     }
 }
 
-// Add Category Form
-const formCat = document.getElementById('form-categoria');
-if (formCat) {
-    formCat.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const input = document.getElementById('cat-nombre');
-        const name = input.value.trim();
-        if (!name) return;
-
-        try {
-            await ProductsManager.saveCategory({ nombre: name, orden: STATE.categories.length + 1, activo: true });
-            input.value = "";
-            renderCategoriesList();
-            Swal.fire({
-                icon: 'success',
-                title: 'Categoría Agregada',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 1500
-            });
-        } catch (e) {
-            console.error(e);
-            Swal.fire('Error', 'No se pudo guardar la categoría', 'error');
-        }
-    });
-}
+// Delete Category
 
 window.eliminarCategoria = async function (id) {
     Swal.fire({
@@ -1209,6 +1115,78 @@ function setupEventListeners() {
     const btnEnter = document.getElementById('btn-enter');
     if (btnEnter) btnEnter.onclick = checkPin;
 
+    // Topping Form
+    const formTopping = document.getElementById('form-topping');
+    if (formTopping) {
+        console.log("Binding Topping Form Submit");
+        formTopping.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log("Topping Form Submit Triggered");
+            const data = {
+                nombre: document.getElementById('top-nombre').value,
+                precio: document.getElementById('top-precio').value,
+                categoria: document.getElementById('top-categoria-select').value
+            };
+            console.log("Topping Data:", data);
+            try {
+                await ProductsManager.saveTopping(data);
+                formTopping.reset();
+                renderToppingsList();
+                Swal.fire('¡Listo!', 'Topping agregado correctamente', 'success');
+            } catch (e) {
+                console.error("Error saving topping:", e);
+                Swal.fire('Error', 'No se pudo guardar el topping', 'error');
+            }
+        });
+    }
+
+    // Product Form
+    const formProd = document.getElementById('form-producto');
+    if (formProd) {
+        formProd.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('prod-id').value;
+            const data = {
+                id: id,
+                nombre: document.getElementById('prod-nombre').value,
+                categoria: document.getElementById('prod-categoria').value,
+                precio: document.getElementById('prod-precio').value,
+                descripcion: document.getElementById('prod-descripcion').value,
+                imagen: document.getElementById('img-preview').src || ""
+            };
+            const file = document.getElementById('prod-imagen').files[0];
+
+            try {
+                Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                await ProductsManager.saveProduct(data, file);
+                cerrarModalProducto();
+                renderProducts();
+                Swal.fire('¡Éxito!', 'Producto guardado correctamente', 'success');
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'No se pudo guardar el producto', 'error');
+            }
+        });
+    }
+
+    // Category Form
+    const formCat = document.getElementById('form-categoria');
+    if (formCat) {
+        formCat.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('cat-nombre').value;
+            try {
+                await ProductsManager.saveCategory({ nombre });
+                document.getElementById('cat-nombre').value = '';
+                renderCategoriesList();
+                Swal.fire('¡Listo!', 'Categoría agregada', 'success');
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'No se pudo crear la categoría', 'error');
+            }
+        });
+    }
+
     // Keyboard support for PIN
     window.addEventListener('keydown', (e) => {
         if (!STATE.isLogged) {
@@ -1287,26 +1265,9 @@ async function renderToppingsList() {
     }
 }
 
-const formTopping = document.getElementById('form-topping');
-if (formTopping) {
-    formTopping.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const data = {
-            nombre: document.getElementById('top-nombre').value,
-            precio: document.getElementById('top-precio').value,
-            categoria: document.getElementById('top-categoria-select').value
-        };
-
-        try {
-            await ProductsManager.saveTopping(data);
-            formTopping.reset();
-            renderToppingsList();
-        } catch (e) {
-            console.error(e);
-            Swal.fire('Error', 'No se pudo guardar el topping', 'error');
-        }
-    });
-}
+// ==========================================
+// 👥 CLIENTES CRUD & CRM
+// ==========================================
 
 window.eliminarTopping = async function (id) {
     const result = await Swal.fire({
