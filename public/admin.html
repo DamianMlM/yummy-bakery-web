@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yummy Admin | Panel de Control v2</title>
+
+    <!-- Librerías Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SortableJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'glass-white': 'rgba(255, 255, 255, 0.7)',
+                        'glass-border': 'rgba(255, 255, 255, 0.5)',
+                        'yummy-brown': '#4A3728',
+                        'yummy-cream': '#FDFBF7',
+                        'yummy-accent': '#D4A373',
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fdfbf7 0%, #e2d1c3 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Classes */
+        .glass {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            /* Un poco más opaco para gráficos */
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* PIN Pad Styles */
+        .pin-btn {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(4px);
+            transition: all 0.15s ease;
+        }
+
+        .pin-btn:active {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(0.95);
+        }
+
+        /* Custom Scrollbar for Kanban */
+        .kanban-col {
+            min-height: 500px;
+            max-height: calc(100vh - 240px);
+            overflow-y: auto;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(74, 55, 40, 0.2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(74, 55, 40, 0.4);
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 selection:bg-yummy-brown selection:text-white">
+
+    <!-- =======================
+         LOGIN SCREEN (PIN PAD) 
+         ======================= -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-white/30 backdrop-blur-xl"></div>
+        <div class="relative glass rounded-3xl p-8 w-full max-w-sm flex flex-col items-center animate-fade-in">
+            <div class="mb-8 text-center">
+                <div
+                    class="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center shadow-lg mb-4 text-3xl border-4 border-yummy-cream">
+                    🔐
+                </div>
+                <h2 class="text-2xl font-bold text-yummy-brown">Panel Chef</h2>
+                <p class="text-sm text-gray-500 mt-1">Ingresa PIN (2026)</p>
+            </div>
+            <div class="flex gap-4 mb-8 justify-center">
+                <div class="w-4 h-4 rounded-full bg-gray-300 transition-colors duration-200 pin-dot"></div>
+                <div class="w-4 h-4 rounded-full bg-gray-300 transition-colors duration-200 pin-dot"></div>
+                <div class="w-4 h-4 rounded-full bg-gray-300 transition-colors duration-200 pin-dot"></div>
+                <div class="w-4 h-4 rounded-full bg-gray-300 transition-colors duration-200 pin-dot"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 w-full mb-4">
+                <button class="pin-btn h-16 rounded-2xl text-2xl font-medium text-gray-700 hover:bg-white/60"
+                    data-num="1">1</button>
+                <button class="pin-btn h-16 rounded-2xl text-2xl font-medium text-gray-700 hover:bg-white/60"
+                    data-num="2">2</button>
+                <button class="pin-btn h-16 rounded-2xl text-2xl font-medium text-gray-700 hover:bg-white/60"
+                    data-num="3">3</button>
+                <button class="pin-btn h-16 rounded-2xl text-2xl font-medium text-gray-700 hover:bg-white/60"
+                    data-num="4">4</button>
+                <button class="pin-btn h-16 rounded-2xl text-2xl font-medium text-gray-700 hover:bg-white/60"
+                    data-num="5">5</button>
+                <button class="pin-btn h-16 rounded-2xl text-2xl font-medium text-gray-700 hover:bg-white/60"
+                    data-num="6">6</button>
+                <button class="pin-btn h-16 rounded-2xl text-2xl font-medium text-gray-700 hover:bg-white/60"
+                    data-num="7">7</button>
+                <button class="pin-btn h-16 rounded-2xl text-2xl font-medium text-gray-700 hover:bg-white/60"
+                    data-num="8">8</button>
+                <button class="pin-btn h-16 rounded-2xl text-2xl font-medium text-gray-700 hover:bg-white/60"
+                    data-num="9">9</button>
+                <button
+                    class="pin-btn h-16 rounded-2xl flex items-center justify-center text-gray-500 hover:text-red-500"
+                    id="btn-clear"><i class="fas fa-backspace"></i></button>
+                <button class="pin-btn h-16 rounded-2xl text-2xl font-medium text-gray-700 hover:bg-white/60"
+                    data-num="0">0</button>
+                <button
+                    class="pin-btn h-16 rounded-2xl flex items-center justify-center bg-yummy-brown/90 text-white shadow-lg"
+                    id="btn-enter"><i class="fas fa-arrow-right"></i></button>
+            </div>
+            <div class="text-center">
+                <a href="index.html" class="text-xs text-yummy-brown hover:underline">← Volver a la Tienda</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================
+         MAIN APP (HIDDEN)
+         ======================= -->
+    <div id="app-container" class="hidden min-h-screen flex flex-col">
+
+        <!-- Navbar -->
+        <nav class="glass sticky top-0 z-40 px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div
+                    class="hidden sm:flex w-10 h-10 bg-yummy-brown text-white rounded-full items-center justify-center font-bold text-lg">
+                    Y</div>
+                <h1 class="text-xl font-bold text-yummy-brown tracking-tight">Admin</h1>
+            </div>
+
+            <!-- CONTROLES CENTRALES: FECHA Y VISTAS -->
+            <div class="flex items-center gap-3 flex-1 justify-center sm:justify-end flex-wrap">
+                <!-- Filtro Rango Fechas -->
+                <div class="flex items-center gap-2 bg-white/40 p-1 rounded-xl border border-white/60 shadow-sm">
+                    <div class="relative group">
+                        <input type="date" id="date-start"
+                            class="w-28 sm:w-32 bg-transparent text-xs sm:text-sm font-medium text-gray-700 outline-none px-2 py-1 text-center cursor-pointer hover:bg-white/50 rounded-lg transition-colors"
+                            title="Desde">
+                    </div>
+                    <span class="text-gray-400 font-bold">-</span>
+                    <div class="relative group">
+                        <input type="date" id="date-end"
+                            class="w-28 sm:w-32 bg-transparent text-xs sm:text-sm font-medium text-gray-700 outline-none px-2 py-1 text-center cursor-pointer hover:bg-white/50 rounded-lg transition-colors"
+                            title="Hasta">
+                    </div>
+                </div>
+
+                <!-- Toggle Vistas -->
+                <div class="flex items-center bg-white/50 rounded-full p-1 border border-white/60 text-xs sm:text-sm">
+                    <button onclick="switchView('kanban')" id="nav-kanban"
+                        class="px-4 py-2 rounded-full font-medium transition-all bg-white shadow-sm text-yummy-brown">
+                        <i class="fas fa-columns sm:mr-2"></i><span class="hidden sm:inline">Kanban</span>
+                    </button>
+                    <button onclick="switchView('dashboard')" id="nav-dashboard"
+                        class="px-4 py-2 rounded-full font-medium text-gray-500 hover:text-yummy-brown transition-all">
+                        <i class="fas fa-chart-pie sm:mr-2"></i><span class="hidden sm:inline">Dash</span>
+                    </button>
+                </div>
+
+                <button onclick="cargarDatos()"
+                    class="w-10 h-10 rounded-full bg-white/50 hover:bg-white text-yummy-brown transition-all flex items-center justify-center border border-white/60"
+                    title="Actualizar">
+                    <i class="fas fa-sync-alt" id="refresh-icon"></i>
+                </button>
+
+                <button onclick="logout()"
+                    class="w-10 h-10 rounded-full bg-white/50 hover:bg-red-50 text-gray-400 hover:text-red-500 transition-all flex items-center justify-center border border-white/60">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 max-w-[1920px] w-full mx-auto">
+
+            <!-- VISTA 1: KANBAN OP -->
+            <div id="view-kanban" class="h-full flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-gray-600">Gestión de Pedidos <span id="lbl-fecha-kanban"
+                            class="text-sm font-normal text-gray-400 ml-2"></span></h2>
+                </div>
+
+                <!-- Kanban Board -->
+                <div class="flex gap-4 overflow-x-auto pb-4 h-full snap-x snap-mandatory sm:snap-none">
+                    <!-- Columnas -->
+                    <div class="kanban-col flex-shrink-0 w-80 snap-center flex flex-col">
+                        <div class="flex items-center justify-between mb-3 px-2">
+                            <span class="font-bold text-gray-600 flex items-center gap-2">
+                                <span
+                                    class="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]"></span>
+                                Pendiente
+                            </span>
+                            <span class="bg-white/60 px-2 py-0.5 rounded-md text-xs font-bold text-gray-500 shadow-sm"
+                                id="count-pendiente">0</span>
+                        </div>
+                        <div id="col-pendiente"
+                            class="flex-1 rounded-2xl bg-white/20 border border-white/30 p-2 space-y-3 sortable-list"
+                            data-status="Pendiente"></div>
+                    </div>
+
+                    <div class="kanban-col flex-shrink-0 w-80 snap-center flex flex-col">
+                        <div class="flex items-center justify-between mb-3 px-2">
+                            <span class="font-bold text-gray-600 flex items-center gap-2">
+                                <span
+                                    class="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]"></span>
+                                Horneando
+                            </span>
+                            <span class="bg-white/60 px-2 py-0.5 rounded-md text-xs font-bold text-gray-500 shadow-sm"
+                                id="count-horneando">0</span>
+                        </div>
+                        <div id="col-horneando"
+                            class="flex-1 rounded-2xl bg-white/20 border border-white/30 p-2 space-y-3 sortable-list"
+                            data-status="Horneando"></div>
+                    </div>
+
+                    <div class="kanban-col flex-shrink-0 w-80 snap-center flex flex-col">
+                        <div class="flex items-center justify-between mb-3 px-2">
+                            <span class="font-bold text-gray-600 flex items-center gap-2">
+                                <span
+                                    class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span>
+                                Entregado
+                            </span>
+                            <span class="bg-white/60 px-2 py-0.5 rounded-md text-xs font-bold text-gray-500 shadow-sm"
+                                id="count-entregado">0</span>
+                        </div>
+                        <div id="col-entregado"
+                            class="flex-1 rounded-2xl bg-white/20 border border-white/30 p-2 space-y-3 sortable-list"
+                            data-status="Entregado"></div>
+                    </div>
+
+                    <div class="kanban-col flex-shrink-0 w-80 snap-center flex flex-col">
+                        <div class="flex items-center justify-between mb-3 px-2">
+                            <span class="font-bold text-gray-600 flex items-center gap-2">
+                                <span
+                                    class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
+                                Finalizado
+                            </span>
+                            <span class="bg-white/60 px-2 py-0.5 rounded-md text-xs font-bold text-gray-500 shadow-sm"
+                                id="count-finalizado">0</span>
+                        </div>
+                        <div id="col-finalizado"
+                            class="flex-1 rounded-2xl bg-white/20 border border-white/30 p-2 space-y-3 sortable-list"
+                            data-status="Finalizado"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA 2: DASHBOARD ESTRATÉGICO -->
+            <div id="view-dashboard" class="hidden animate-fade-in pb-10">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
+                        <p class="text-sm text-gray-500">Métricas para periodo <span id="lbl-fecha-dash"
+                                class="font-bold"></span></p>
+                    </div>
+                </div>
+
+                <!-- GRID LAYOUT DASHBOARD -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <!-- KPI 1: Ventas -->
+                    <div class="glass-card p-4 rounded-2xl relative overflow-hidden group">
+                        <div
+                            class="absolute right-0 top-0 p-4 text-green-100 text-6xl opacity-20 transform translate-x-2 -translate-y-2 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <p class="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Ventas Totales</p>
+                        <h3 class="text-3xl font-bold text-gray-800" id="kpi-ventas">$0</h3>
+                        <div class="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                            <span class="text-green-600 bg-green-100 px-1.5 py-0.5 rounded font-bold"><i
+                                    class="fas fa-arrow-up"></i> Periodo</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2: Pedidos -->
+                    <div class="glass-card p-4 rounded-2xl relative overflow-hidden group">
+                        <div
+                            class="absolute right-0 top-0 p-4 text-blue-100 text-6xl opacity-20 transform translate-x-2 -translate-y-2 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <p class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Total Pedidos</p>
+                        <h3 class="text-3xl font-bold text-gray-800" id="kpi-pedidos">0</h3>
+                        <div class="mt-2 text-xs text-gray-500">Volumen del periodo</div>
+                    </div>
+
+                    <!-- KPI 3: Ticket Promedio -->
+                    <div class="glass-card p-4 rounded-2xl relative overflow-hidden group">
+                        <div
+                            class="absolute right-0 top-0 p-4 text-purple-100 text-6xl opacity-20 transform translate-x-2 -translate-y-2 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <p class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-1">Ticket Promedio</p>
+                        <h3 class="text-3xl font-bold text-gray-800" id="kpi-ticket">$0</h3>
+                        <div class="mt-2 text-xs text-gray-500">Por orden</div>
+                    </div>
+
+                    <!-- KPI 4: Tasa Conversión (Finalizados vs Totales) -->
+                    <div class="glass-card p-4 rounded-2xl relative overflow-hidden group">
+                        <div
+                            class="absolute right-0 top-0 p-4 text-orange-100 text-6xl opacity-20 transform translate-x-2 -translate-y-2 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <p class="text-xs font-bold text-orange-600 uppercase tracking-wider mb-1">Completados</p>
+                        <h3 class="text-3xl font-bold text-gray-800" id="kpi-tasa">0%</h3>
+                        <div class="mt-2 text-xs text-gray-500">Tasa de finalización</div>
+                    </div>
+                </div>
+
+                <!-- ROW 2: LINE CHART + DOUGHNUT -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                    <!-- Chart: Ventas Hora/Dia (Wide) -->
+                    <div class="glass-card p-5 rounded-2xl lg:col-span-2 flex flex-col">
+                        <h3 class="font-bold text-gray-700 mb-2 text-sm flex items-center gap-2"><i
+                                class="far fa-clock"></i> Evolución de Ventas</h3>
+                        <div class="flex-1 min-h-[250px] relative">
+                            <canvas id="chart-timeline"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart: Estatus (Doughnut) -->
+                    <div class="glass-card p-5 rounded-2xl flex flex-col">
+                        <h3 class="font-bold text-gray-700 mb-2 text-sm flex items-center gap-2"><i
+                                class="fas fa-tasks"></i> Distribución Estatus</h3>
+                        <div class="flex-1 min-h-[200px] flex items-center justify-center relative">
+                            <canvas id="chart-status"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 3: DETAILED BARS -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- Chart: Productos Top -->
+                    <div class="glass-card p-5 rounded-2xl">
+                        <h3 class="font-bold text-gray-700 mb-4 text-sm">🏆 Top Productos</h3>
+                        <div class="h-[250px] relative">
+                            <canvas id="chart-products"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart: Clientes Top -->
+                    <div class="glass-card p-5 rounded-2xl">
+                        <h3 class="font-bold text-gray-700 mb-4 text-sm">👑 Mejores Clientes</h3>
+                        <div class="h-[250px] relative">
+                            <canvas id="chart-customers"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+
+</html>
