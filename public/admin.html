@@ -228,40 +228,40 @@
                 </div>
             </div>
 
-            <!-- Navigation Groups -->
+            <!-- Desktop Navigation Groups -->
             <div
-                class="hidden lg:flex items-center gap-1 bg-white/40 p-1 rounded-2xl border border-white/60 text-xs shadow-inner">
-                <!-- Dashboard Group -->
-                <div class="flex items-center border-r border-gray-200 pr-1 gap-1">
-                    <button onclick="switchView('kanban')" id="nav-kanban"
-                        class="nav-btn px-4 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
-                        <i class="fas fa-columns mr-2"></i>Tablero
-                    </button>
+                class="hidden lg:flex items-center gap-1 bg-white/40 p-1 rounded-2xl border border-white/60 text-[11px] shadow-inner">
+                <!-- Operations -->
+                <div class="flex items-center border-r border-gray-200/50 pr-1 gap-1">
                     <button onclick="switchView('lista')" id="nav-lista"
-                        class="nav-btn px-4 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
-                        <i class="fas fa-list mr-2"></i>Pedidos
+                        class="nav-btn px-3 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
+                        <i class="fas fa-list mr-1.5"></i>Pedidos
+                    </button>
+                    <button onclick="switchView('kanban')" id="nav-kanban"
+                        class="nav-btn px-3 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
+                        <i class="fas fa-columns mr-1.5"></i>Tablero
                     </button>
                     <button onclick="switchView('produccion')" id="nav-produccion"
-                        class="nav-btn px-4 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
-                        <i class="fas fa-fire mr-2"></i>Cocina
+                        class="nav-btn px-3 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
+                        <i class="fas fa-fire mr-1.5"></i>Cocina
                     </button>
                 </div>
-                <!-- Analytics Group -->
-                <div class="flex items-center border-r border-gray-200 px-1 gap-1">
+                <!-- Analytics -->
+                <div class="flex items-center border-r border-gray-200/50 px-1 gap-1">
                     <button onclick="switchView('dashboard')" id="nav-dashboard"
-                        class="nav-btn px-4 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
-                        <i class="fas fa-chart-line mr-2"></i>Finanzas
+                        class="nav-btn px-3 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
+                        <i class="fas fa-chart-line mr-1.5"></i>Finanzas
                     </button>
                     <button onclick="switchView('clientes')" id="nav-clientes"
-                        class="nav-btn px-4 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
-                        <i class="fas fa-users mr-2"></i>Clientes
+                        class="nav-btn px-3 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
+                        <i class="fas fa-users mr-1.5"></i>Clientes
                     </button>
                 </div>
-                <!-- Catalog Group -->
+                <!-- Catalog -->
                 <div class="flex items-center pl-1">
                     <button onclick="switchView('productos')" id="nav-productos"
-                        class="nav-btn px-4 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
-                        <i class="fas fa-tag mr-2"></i>Catálogo
+                        class="nav-btn px-3 py-2 rounded-xl font-bold uppercase tracking-wider transition-all hover:bg-white/60 text-gray-400">
+                        <i class="fas fa-tag mr-1.5"></i>Catálogo
                     </button>
                 </div>
             </div>
@@ -290,8 +290,38 @@
             </div>
         </nav>
 
+        <!-- Mobile Bottom Navigation -->
+        <nav
+            class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-100 px-4 py-2 z-50 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+            <button onclick="switchView('lista')" id="nav-m-lista"
+                class="flex flex-col items-center gap-1 flex-1 py-1 text-gray-400 nav-btn-m">
+                <i class="fas fa-list text-lg"></i>
+                <span class="text-[10px] font-bold uppercase">Pedidos</span>
+            </button>
+            <button onclick="switchView('kanban')" id="nav-m-kanban"
+                class="flex flex-col items-center gap-1 flex-1 py-1 text-gray-400 nav-btn-m">
+                <i class="fas fa-columns text-lg"></i>
+                <span class="text-[10px] font-bold uppercase">Tablero</span>
+            </button>
+            <button onclick="switchView('produccion')" id="nav-m-produccion"
+                class="flex flex-col items-center gap-1 flex-1 py-1 text-gray-400 nav-btn-m">
+                <i class="fas fa-fire text-lg"></i>
+                <span class="text-[10px] font-bold uppercase">Cocina</span>
+            </button>
+            <button onclick="switchView('dashboard')" id="nav-m-dashboard"
+                class="flex flex-col items-center gap-1 flex-1 py-1 text-gray-400 nav-btn-m">
+                <i class="fas fa-chart-line text-lg"></i>
+                <span class="text-[10px] font-bold uppercase">Métricas</span>
+            </button>
+            <button onclick="switchView('productos')" id="nav-m-productos"
+                class="flex flex-col items-center gap-1 flex-1 py-1 text-gray-400 nav-btn-m">
+                <i class="fas fa-tag text-lg"></i>
+                <span class="text-[10px] font-bold uppercase">Catálogo</span>
+            </button>
+        </nav>
+
         <!-- Main Content -->
-        <main class="flex-1 p-4 sm:p-6 max-w-[1920px] w-full mx-auto">
+        <main class="flex-1 p-4 sm:p-6 max-w-[1920px] w-full mx-auto pb-24 lg:pb-6">
 
             <!-- VISTA 1: KANBAN OP -->
             <div id="view-kanban" class="h-full flex flex-col">

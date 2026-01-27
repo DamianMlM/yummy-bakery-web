@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkSesion();
     setupEventListeners();
     // Default Tab
-    switchView('kanban');
+    switchView('lista');
 });
 
 function checkSesion() {
@@ -667,7 +667,7 @@ window.switchView = function (view) {
     const viewEl = document.getElementById(`view-${view}`);
     if (viewEl) viewEl.classList.remove('hidden');
 
-    // Update Nav Buttons styling
+    // Update Nav Buttons styling (Desktop)
     document.querySelectorAll('.nav-btn').forEach(b => {
         b.classList.remove('bg-white', 'text-yummy-brown', 'shadow-sm', 'ring-1', 'ring-black/5');
         b.classList.add('text-gray-400', 'hover:bg-white/40');
@@ -677,6 +677,18 @@ window.switchView = function (view) {
     if (btn) {
         btn.classList.remove('text-gray-400', 'hover:bg-white/40');
         btn.classList.add('bg-white', 'text-yummy-brown', 'shadow-sm', 'ring-1', 'ring-black/5');
+    }
+
+    // Update Nav Buttons styling (Mobile)
+    document.querySelectorAll('.nav-btn-m').forEach(b => {
+        b.classList.remove('text-yummy-brown');
+        b.classList.add('text-gray-400');
+    });
+
+    const btnM = document.getElementById(`nav-m-${view}`);
+    if (btnM) {
+        btnM.classList.remove('text-gray-400');
+        btnM.classList.add('text-yummy-brown');
     }
 
     // Trigger view-specific renders
