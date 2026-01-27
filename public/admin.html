@@ -270,7 +270,7 @@
             <div class="flex items-center gap-3">
                 <!-- Date Filter (Compact) -->
                 <div
-                    class="hidden xl:flex items-center gap-2 bg-gray-50/50 px-3 py-2 rounded-xl border border-gray-100">
+                    class="hidden lg:flex items-center gap-2 bg-white/50 px-3 py-2 rounded-xl border border-gray-100 shadow-inner">
                     <input type="date" id="date-start"
                         class="bg-transparent text-[10px] font-bold text-gray-500 outline-none w-24">
                     <span class="text-gray-300">-</span>
@@ -320,8 +320,31 @@
             </button>
         </nav>
 
+        <!-- Mobile Bottom Navigation -->
+        ... (keeping previous) ...
+        </nav>
+
         <!-- Main Content -->
         <main class="flex-1 p-4 sm:p-6 max-w-[1920px] w-full mx-auto pb-24 lg:pb-6">
+
+            <!-- MOBILE GLOBAL DATE FILTER (lg:hidden) -->
+            <div
+                class="lg:hidden mb-6 flex items-center justify-between gap-2 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm animate-fade-in">
+                <div class="flex flex-1 flex-col gap-1">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase ml-1">Desde</label>
+                    <input type="date" id="date-start-m"
+                        class="bg-gray-50 border border-gray-100 rounded-lg px-2 py-1.5 text-xs font-bold text-yummy-brown outline-none focus:border-yummy-accent">
+                </div>
+                <div class="flex flex-1 flex-col gap-1">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase ml-1">Hasta</label>
+                    <input type="date" id="date-end-m"
+                        class="bg-gray-50 border border-gray-100 rounded-lg px-2 py-1.5 text-xs font-bold text-yummy-brown outline-none focus:border-yummy-accent">
+                </div>
+                <button onclick="cargarDatos()"
+                    class="mt-4 w-10 h-10 flex items-center justify-center rounded-xl bg-yummy-brown/5 text-yummy-brown">
+                    <i class="fas fa-sync-alt text-xs"></i>
+                </button>
+            </div>
 
             <!-- VISTA 1: KANBAN OP -->
             <div id="view-kanban" class="h-full flex flex-col">
@@ -412,10 +435,10 @@
                             <i class="fas fa-file-excel"></i> Exportar Excel
                         </button>
                         <div
-                            class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm">
-                            <i class="far fa-calendar-alt text-gray-400"></i>
+                            class="flex items-center gap-2 bg-white px-3 py-2 rounded-2xl border-2 border-yummy-accent/20 shadow-sm focus-within:border-yummy-accent transition-all">
+                            <i class="far fa-calendar-alt text-yummy-brown/50"></i>
                             <input type="date" id="order-date-filter" onchange="renderList()"
-                                class="bg-transparent border-none outline-none text-sm font-medium text-gray-600 cursor-pointer">
+                                class="bg-transparent border-none outline-none text-xs font-bold text-gray-700 cursor-pointer min-w-[100px]">
                             <button onclick="document.getElementById('order-date-filter').value=''; renderList()"
                                 class="text-[10px] text-gray-400 hover:text-red-500 ml-1">
                                 <i class="fas fa-times"></i>
@@ -654,43 +677,61 @@
 
             <!-- VISTA 5: PRODUCTOS CRUD -->
             <div id="view-productos" class="hidden animate-fade-in pb-10">
-                <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
-                    <h2 class="text-2xl font-bold text-gray-800">Catálogo de Productos</h2>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Catálogo de Productos</h2>
+                        <p class="text-xs text-gray-500">Gestiona tus productos y menús</p>
+                    </div>
 
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                         <!-- Filter -->
-                        <div class="relative">
+                        <div class="relative flex-1 sm:flex-none">
                             <select id="filter-category" onchange="filterProducts(this.value)"
-                                class="bg-white border border-gray-200 text-gray-700 py-2 px-4 pr-8 rounded-xl leading-tight focus:outline-none focus:bg-white focus:border-gray-500 appearance-none shadow-sm">
-                                <option value="all">Todas las Categorías</option>
-                                <!-- JS Injected -->
+                                class="w-full bg-white border border-gray-200 text-xs py-2 px-4 pr-8 rounded-xl focus:outline-none focus:border-yummy-accent shadow-sm appearance-none">
+                                <option value="all">Todas</option>
                             </select>
                             <div
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                <i class="fas fa-filter text-xs"></i>
+                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                <i class="fas fa-filter text-[10px]"></i>
                             </div>
                         </div>
 
                         <button onclick="abrirModalCategorias()"
-                            class="bg-white text-yummy-brown border border-yummy-brown px-4 py-2 rounded-xl shadow-sm hover:bg-orange-50 transition-all flex items-center gap-2">
-                            <i class="fas fa-layer-group"></i> Categorías
+                            class="flex-1 sm:flex-none bg-white text-yummy-brown border border-yummy-brown px-3 py-2 rounded-xl text-xs font-bold hover:bg-orange-50 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-layer-group"></i> <span class="hidden sm:inline">Categorías</span>
                         </button>
 
                         <button onclick="abrirModalToppings()"
-                            class="bg-white text-yummy-brown border border-yummy-brown px-4 py-2 rounded-xl shadow-sm hover:bg-orange-50 transition-all flex items-center gap-2">
-                            <i class="fas fa-cookie-bite"></i> Toppings/Extras
+                            class="flex-1 sm:flex-none bg-white text-yummy-brown border border-yummy-brown px-3 py-2 rounded-xl text-xs font-bold hover:bg-orange-50 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-cookie-bite"></i> <span class="hidden sm:inline">Toppings</span>
                         </button>
 
                         <button onclick="abrirModalProducto()"
-                            class="bg-yummy-brown text-white px-4 py-2 rounded-xl shadow-lg hover:bg-gray-800 transition-all flex items-center gap-2">
-                            <i class="fas fa-plus"></i> Nuevo Producto
+                            class="flex-1 sm:flex-none bg-yummy-brown text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-plus"></i> <span>Añadir</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Products Grid -->
-                <div id="productos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- JS Injected -->
+                <!-- Products List Container -->
+                <div class="bg-white rounded-3xl shadow-xl shadow-yummy-brown/5 border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr
+                                    class="bg-gray-50/50 text-gray-400 text-[10px] font-black uppercase tracking-widest border-b border-gray-100">
+                                    <th class="px-4 py-4 w-16">Imagen</th>
+                                    <th class="px-4 py-4">Producto</th>
+                                    <th class="px-4 py-4 hidden md:table-cell">Categoría</th>
+                                    <th class="px-4 py-4 text-right">Precio</th>
+                                    <th class="px-4 py-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productos-list-body" class="divide-y divide-gray-50">
+                                <!-- JS Injected -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -732,96 +773,112 @@
     <!-- MODAL PRODUCTO -->
     <div id="modal-producto" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="cerrarModalProducto()"></div>
-        <div class="relative bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl animate-fade-in">
-            <h3 class="text-xl font-bold text-yummy-brown mb-4" id="modal-title">Nuevo Producto</h3>
+        <div class="relative bg-white rounded-3xl w-full max-w-lg shadow-2xl animate-fade-in overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+                <h3 class="text-xl font-bold text-yummy-brown" id="modal-title">Nuevo Producto</h3>
+                <button onclick="cerrarModalProducto()"
+                    class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-times text-gray-400"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="form-producto" class="space-y-4">
+                    <input type="hidden" id="prod-id">
 
-            <form id="form-producto" class="space-y-4">
-                <input type="hidden" id="prod-id">
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nombre</label>
-                    <input type="text" id="prod-nombre" required
-                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Categoría</label>
-                        <select id="prod-categoria" required
-                            class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
-                            <option value="panes">Panes</option>
-                            <option value="pasteles">Pasteles</option>
-                            <option value="galletas">Galletas</option>
-                            <option value="bebidas">Bebidas</option>
-                            <option value="otros">Otros</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Precio ($)</label>
-                        <input type="number" id="prod-precio" step="0.50" required
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nombre</label>
+                        <input type="text" id="prod-nombre" required
                             class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
                     </div>
-                </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Descripción</label>
-                    <textarea id="prod-descripcion" rows="3"
-                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Imagen</label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors relative"
-                        id="drop-zone">
-                        <input type="file" id="prod-imagen" accept="image/*" class="hidden">
-                        <div id="img-preview-container" class="hidden relative h-32 w-full">
-                            <img id="img-preview" class="h-full w-full object-contain rounded-lg">
-                            <button type="button" onclick="removeImage()"
-                                class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-lg transform translate-x-2 -translate-y-2">
-                                <i class="fas fa-times text-xs"></i>
-                            </button>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Categoría</label>
+                            <select id="prod-categoria" required
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
+                                <option value="panes">Panes</option>
+                                <option value="pasteles">Pasteles</option>
+                                <option value="galletas">Galletas</option>
+                                <option value="bebidas">Bebidas</option>
+                                <option value="otros">Otros</option>
+                            </select>
                         </div>
-                        <div id="img-placeholder" onclick="document.getElementById('prod-imagen').click()">
-                            <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
-                            <p class="text-xs text-gray-500">Click para subir imagen</p>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Precio ($)</label>
+                            <input type="number" id="prod-precio" step="0.50" required
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
                         </div>
                     </div>
-                </div>
 
-                <div class="pt-4 flex gap-3">
-                    <button type="button" onclick="cerrarModalProducto()"
-                        class="flex-1 py-2 rounded-xl text-gray-500 font-bold hover:bg-gray-100 transition-colors">
-                        Cancelar
-                    </button>
-                    <button type="submit"
-                        class="flex-1 py-2 rounded-xl bg-yummy-brown text-white font-bold shadow-lg hover:shadow-xl transition-all">
-                        Guardar
-                    </button>
-                </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Descripción</label>
+                        <textarea id="prod-descripcion" rows="3"
+                            class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Imagen</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors relative"
+                            id="drop-zone">
+                            <input type="file" id="prod-imagen" accept="image/*" class="hidden">
+                            <div id="img-preview-container" class="hidden relative h-32 w-full">
+                                <img id="img-preview" class="h-full w-full object-contain rounded-lg">
+                                <button type="button" onclick="removeImage()"
+                                    class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-lg transform translate-x-2 -translate-y-2">
+                                    <i class="fas fa-times text-xs"></i>
+                                </button>
+                            </div>
+                            <div id="img-placeholder" onclick="document.getElementById('prod-imagen').click()">
+                                <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2"></i>
+                                <p class="text-xs text-gray-500">Click para subir imagen</p>
+                            </div>
+                        </div>
+                    </div>
+
+            </div>
+
+            <div class="pt-6 flex gap-3">
+                <button type="button" onclick="cerrarModalProducto()"
+                    class="flex-1 py-3 rounded-2xl text-gray-400 font-bold hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="flex-[2] py-3 rounded-2xl bg-yummy-brown text-white font-bold shadow-lg hover:shadow-xl transition-all">
+                    Guardar Producto
+                </button>
+            </div>
             </form>
         </div>
+    </div>
     </div>
 
     <!-- MODAL CATEGORIAS -->
     <div id="modal-categorias" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="cerrarModalCategorias()"></div>
-        <div class="relative bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl animate-fade-in">
-            <h3 class="text-xl font-bold text-yummy-brown mb-4">Gestionar Categorías</h3>
-
-            <!-- Nueva Categoria -->
-            <form id="form-categoria" class="flex gap-2 mb-6">
-                <input type="text" id="cat-nombre" placeholder="Nueva Categoría" required
-                    class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
-                <button type="submit"
-                    class="bg-yummy-brown text-white px-4 py-2 rounded-xl shadow-md hover:bg-gray-800 transition-all">
-                    <i class="fas fa-plus"></i>
+        <div class="relative bg-white rounded-3xl w-full max-w-md shadow-2xl animate-fade-in overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+                <h3 class="text-xl font-bold text-yummy-brown">Gestionar Categorías</h3>
+                <button onclick="cerrarModalCategorias()"
+                    class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-times text-gray-400"></i>
                 </button>
-            </form>
+            </div>
+            <div class="p-6">
 
-            <!-- Lista Categorias -->
-            <div class="max-h-80 overflow-y-auto space-y-3" id="lista-categorias">
-                <!-- Template for category item (rendered by JS) -->
-                <!-- JS will inject:
+                <!-- Nueva Categoria -->
+                <form id="form-categoria" class="flex gap-2 mb-6">
+                    <input type="text" id="cat-nombre" placeholder="Nueva Categoría" required
+                        class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
+                    <button type="submit"
+                        class="bg-yummy-brown text-white px-4 py-2 rounded-xl shadow-md hover:bg-gray-800 transition-all">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </form>
+
+                <!-- Lista Categorias -->
+                <div class="max-h-80 overflow-y-auto space-y-3" id="lista-categorias">
+                    <!-- Template for category item (rendered by JS) -->
+                    <!-- JS will inject:
                     <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-2">
                         <div class="flex justify-between items-center">
                             <span class="font-bold text-gray-700 capitalize text-sm">${c.nombre}</span>
@@ -836,133 +893,141 @@
                         </div>
                     </div>
                 -->
-            </div>
+                </div>
 
-            <div class="pt-4 text-center">
-                <button onclick="cerrarModalCategorias()"
-                    class="text-gray-400 hover:text-gray-600 font-medium">Cerrar</button>
+                <div class="pt-4 text-center">
+                    <button onclick="cerrarModalCategorias()"
+                        class="text-gray-400 hover:text-gray-600 font-medium">Cerrar</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- MODAL DETALLE DE PEDIDO (CRM) -->
-    <div id="modal-detalle-pedido" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="cerrarModalDetalle()"></div>
-        <div class="relative bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-fade-in overflow-hidden">
-            <!-- Header Modal -->
-            <div class="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center">
-                <div>
-                    <h3 class="text-xl font-bold text-yummy-brown" id="det-id-display">Pedido #0000</h3>
-                    <p class="text-xs text-gray-400" id="det-fecha-display">00/00/0000 00:00</p>
-                </div>
-                <button onclick="cerrarModalDetalle()"
-                    class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
-                    <i class="fas fa-times text-gray-500"></i>
-                </button>
-            </div>
-
-            <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
-                <!-- Cliente Info -->
-                <div class="grid grid-cols-2 gap-4 bg-orange-50/50 p-4 rounded-3xl border border-orange-100/50">
+        <!-- MODAL DETALLE DE PEDIDO (CRM) -->
+        <div id="modal-detalle-pedido" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="cerrarModalDetalle()"></div>
+            <div class="relative bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-fade-in overflow-hidden">
+                <!-- Header Modal -->
+                <div class="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center">
                     <div>
-                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Cliente</p>
-                        <p class="text-sm font-bold text-gray-800" id="det-cliente"></p>
+                        <h3 class="text-xl font-bold text-yummy-brown" id="det-id-display">Pedido #0000</h3>
+                        <p class="text-xs text-gray-400" id="det-fecha-display">00/00/0000 00:00</p>
                     </div>
-                    <div>
-                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Teléfono</p>
-                        <p class="text-sm font-medium text-gray-600" id="det-tel"></p>
-                    </div>
-                    <div class="col-span-2">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Dirección de Entrega</p>
-                        <p class="text-sm text-gray-600 line-clamp-2" id="det-dir"></p>
-                    </div>
-                </div>
-
-                <!-- Tabla Productos -->
-                <div>
-                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-3 px-2">Detalle de Productos</p>
-                    <div class="space-y-2" id="det-items-list">
-                        <!-- ITEMS INJECTED -->
-                    </div>
-                    <div class="mt-4 flex justify-between items-center px-4 py-3 bg-gray-50 rounded-2xl">
-                        <span class="text-sm font-bold text-gray-500 uppercase">Total Pagado</span>
-                        <span class="text-xl font-black text-yummy-brown" id="det-total-display">$0.00</span>
-                    </div>
-                </div>
-
-                <!-- Observaciones -->
-                <div id="det-obs-box" class="hidden">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-2">Observaciones</p>
-                    <div class="bg-red-50 text-red-700 text-xs p-3 rounded-xl border border-red-100" id="det-obs"></div>
-                </div>
-
-                <!-- Selector de Estatus -->
-                <div class="space-y-3">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-1 px-2">Cambiar Estado del Pedido</p>
-                    <select id="det-status-select"
-                        class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 px-4 outline-none focus:border-yummy-accent transition-all font-bold text-gray-700">
-                        <option value="Pendiente">🟡 Pedido Pendiente</option>
-                        <option value="Horneando">🔵 En el Horno</option>
-                        <option value="Entregado">🟢 Listo / Entregado</option>
-                        <option value="Finalizado">✨ Finalizado</option>
-                        <option value="Cancelado">🔴 Cancelado</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Footer Modal -->
-            <div class="p-6 border-t border-gray-100 flex gap-3">
-                <button onclick="cerrarModalDetalle()"
-                    class="flex-1 py-3 text-gray-400 font-bold hover:text-gray-600 transition-colors">
-                    Descartar
-                </button>
-                <button id="btn-save-status"
-                    class="flex-[2] bg-yummy-brown text-white py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                    <i class="fas fa-save"></i> Guardar Cambios
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL TOPPINGS/EXTRAS -->
-    <div id="modal-toppings" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="cerrarModalToppings()"></div>
-        <div class="relative bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl animate-fade-in">
-            <h3 class="text-xl font-bold text-yummy-brown mb-4">Gestionar Toppings / Extras</h3>
-
-            <form id="form-topping" class="space-y-4 mb-6">
-                <div class="grid grid-cols-2 gap-3">
-                    <input type="text" id="top-nombre" placeholder="Nombre Topping" required
-                        class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
-                    <input type="number" id="top-precio" placeholder="Precio ($)" step="0.50" required
-                        class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
-                </div>
-                <div class="flex gap-2">
-                    <select id="top-categoria-select" required
-                        class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
-                        <option value="">Selecciona Categoría</option>
-                        <!-- JS Injected -->
-                    </select>
-                    <button type="submit"
-                        class="bg-yummy-brown text-white px-6 py-2 rounded-xl shadow-md hover:bg-gray-800 transition-all">
-                        <i class="fas fa-plus mr-1"></i> Agregar
+                    <button onclick="cerrarModalDetalle()"
+                        class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
+                        <i class="fas fa-times text-gray-500"></i>
                     </button>
                 </div>
-            </form>
 
-            <div class="max-h-80 overflow-y-auto space-y-4" id="lista-toppings-container">
-                <!-- Grouped by category -->
-            </div>
+                <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                    <!-- Cliente Info -->
+                    <div class="grid grid-cols-2 gap-4 bg-orange-50/50 p-4 rounded-3xl border border-orange-100/50">
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Cliente</p>
+                            <p class="text-sm font-bold text-gray-800" id="det-cliente"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Teléfono</p>
+                            <p class="text-sm font-medium text-gray-600" id="det-tel"></p>
+                        </div>
+                        <div class="col-span-2">
+                            <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Dirección de Entrega</p>
+                            <p class="text-sm text-gray-600 line-clamp-2" id="det-dir"></p>
+                        </div>
+                    </div>
 
-            <div class="pt-4 text-center">
-                <button onclick="cerrarModalToppings()"
-                    class="text-gray-400 hover:text-gray-600 font-medium">Cerrar</button>
+                    <!-- Tabla Productos -->
+                    <div>
+                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-3 px-2">Detalle de Productos</p>
+                        <div class="space-y-2" id="det-items-list">
+                            <!-- ITEMS INJECTED -->
+                        </div>
+                        <div class="mt-4 flex justify-between items-center px-4 py-3 bg-gray-50 rounded-2xl">
+                            <span class="text-sm font-bold text-gray-500 uppercase">Total Pagado</span>
+                            <span class="text-xl font-black text-yummy-brown" id="det-total-display">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div id="det-obs-box" class="hidden">
+                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-2">Observaciones</p>
+                        <div class="bg-red-50 text-red-700 text-xs p-3 rounded-xl border border-red-100" id="det-obs">
+                        </div>
+                    </div>
+
+                    <!-- Selector de Estatus -->
+                    <div class="space-y-3">
+                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-1 px-2">Cambiar Estado del Pedido</p>
+                        <select id="det-status-select"
+                            class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 px-4 outline-none focus:border-yummy-accent transition-all font-bold text-gray-700">
+                            <option value="Pendiente">🟡 Pedido Pendiente</option>
+                            <option value="Horneando">🔵 En el Horno</option>
+                            <option value="Entregado">🟢 Listo / Entregado</option>
+                            <option value="Finalizado">✨ Finalizado</option>
+                            <option value="Cancelado">🔴 Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Footer Modal -->
+                <div class="p-6 border-t border-gray-100 flex gap-3">
+                    <button onclick="cerrarModalDetalle()"
+                        class="flex-1 py-3 text-gray-400 font-bold hover:text-gray-600 transition-colors">
+                        Descartar
+                    </button>
+                    <button id="btn-save-status"
+                        class="flex-[2] bg-yummy-brown text-white py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script src="js/config.js"></script>
-    <script type="module" src="js/admin.js"></script>
+        <!-- MODAL TOPPINGS/EXTRAS -->
+        <div id="modal-toppings" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="cerrarModalToppings()"></div>
+            <div class="relative bg-white rounded-3xl w-full max-w-lg shadow-2xl animate-fade-in overflow-hidden">
+                <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+                    <h3 class="text-xl font-bold text-yummy-brown">Gestionar Toppings / Extras</h3>
+                    <button onclick="cerrarModalToppings()"
+                        class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
+                        <i class="fas fa-times text-gray-400"></i>
+                    </button>
+                </div>
+                <div class="p-6">
+
+                    <form id="form-topping" class="space-y-4 mb-6">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="text" id="top-nombre" placeholder="Nombre Topping" required
+                                class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
+                            <input type="number" id="top-precio" placeholder="Precio ($)" step="0.50" required
+                                class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="top-categoria-select" required
+                                class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
+                                <option value="">Selecciona Categoría</option>
+                                <!-- JS Injected -->
+                            </select>
+                            <button type="submit"
+                                class="bg-yummy-brown text-white px-6 py-2 rounded-xl shadow-md hover:bg-gray-800 transition-all">
+                                <i class="fas fa-plus mr-1"></i> Agregar
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="max-h-80 overflow-y-auto space-y-4" id="lista-toppings-container">
+                        <!-- Grouped by category -->
+                    </div>
+
+                    <div class="pt-4 text-center">
+                        <button onclick="cerrarModalToppings()"
+                            class="text-gray-400 hover:text-gray-600 font-medium">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+
+            <script src="js/config.js"></script>
+            <script type="module" src="js/admin.js"></script>
 </body>
 
 </html>

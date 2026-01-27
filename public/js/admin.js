@@ -552,17 +552,25 @@ function renderCharts() {
         options: { indexAxis: 'y', responsive: true }
     });
 
-    // 4. Ventas por Categoría
+    // 4. Ventas por Categoría (Normalizado)
     const catVentas = {};
+    const catLabelsMap = {}; // slug -> pretty name
+
     STATE.detallesFiltered.forEach(d => {
-        catVentas[d.Categoria] = (catVentas[d.Categoria] || 0) + d.Subtotal;
+        const slug = (d.Categoria || "").toLowerCase().trim().replace(/\s+/g, '-');
+        catVentas[slug] = (catVentas[slug] || 0) + d.Subtotal;
+
+        if (!catLabelsMap[slug]) {
+            const cat = STATE.categories.find(c => c.valor === slug);
+            catLabelsMap[slug] = cat ? cat.nombre : (d.Categoria || slug);
+        }
     });
 
     if (window.myChartCats) window.myChartCats.destroy();
     window.myChartCats = new Chart(ctxCustomers, {
         type: 'pie',
         data: {
-            labels: Object.keys(catVentas),
+            labels: Object.keys(catVentas).map(slug => catLabelsMap[slug]),
             datasets: [{
                 data: Object.values(catVentas),
                 backgroundColor: ['#4A3728', '#D4A373', '#E9DAC1', '#9C6644', '#7F5539']
@@ -616,13 +624,21 @@ function renderProduction() {
     document.getElementById('prod-kpi-envio').textContent = countEnvio;
     document.getElementById('prod-kpi-recoger').textContent = countRecoger;
 
-    // Agrupar por Producto para la tabla
+    // Agrupar por Producto y Categoría (Normalizado)
     const resumenProd = {};
     const resumenCat = {};
+    const catLabelsMapProd = {};
 
     itemsProduccion.forEach(d => {
         resumenProd[d.nombre] = (resumenProd[d.nombre] || 0) + d.cantidad;
-        resumenCat[d.categoria] = (resumenCat[d.categoria] || 0) + d.cantidad;
+
+        const slug = (d.categoria || "").toLowerCase().trim().replace(/\s+/g, '-');
+        resumenCat[slug] = (resumenCat[slug] || 0) + d.cantidad;
+
+        if (!catLabelsMapProd[slug]) {
+            const cat = STATE.categories.find(c => c.valor === slug);
+            catLabelsMapProd[slug] = cat ? cat.nombre : (slug.charAt(0).toUpperCase() + slug.slice(1));
+        }
     });
 
     // Render Tabla
@@ -638,7 +654,7 @@ function renderProduction() {
     window.myChartProd = new Chart(chartCtx, {
         type: 'bar',
         data: {
-            labels: Object.keys(resumenCat).map(c => c.charAt(0).toUpperCase() + c.slice(1)),
+            labels: Object.keys(resumenCat).map(slug => catLabelsMapProd[slug]),
             datasets: [{
                 label: 'Unidades',
                 data: Object.values(resumenCat),
@@ -711,10 +727,10 @@ window.switchView = function (view) {
 // 🍎 PRODUCTOS CRUD
 // ==========================================
 async function renderProducts() {
-    const grid = document.getElementById('productos-grid');
-    if (!grid) return;
+    const tbody = document.getElementById('productos-list-body');
+    if (!tbody) return;
 
-    grid.innerHTML = '<div class="col-span-full text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-yummy-brown"></i></div>';
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-yummy-brown"></i></td></tr>`;
 
     try {
         const [products, categories] = await Promise.all([
@@ -734,44 +750,57 @@ async function renderProducts() {
         }
 
         if (displayProducts.length === 0) {
-            grid.innerHTML = `
-                <div class="col-span-full text-center py-10 text-gray-400">
-                    <i class="fas fa-box-open text-4xl mb-2"></i>
-                    <p>No hay productos registrados.</p>
-                </div>
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-10 text-gray-400">
+                        <i class="fas fa-box-open text-4xl mb-2"></i>
+                        <p>No hay productos registrados.</p>
+                    </td>
+                </tr>
              `;
             return;
         }
 
-        grid.innerHTML = displayProducts.map(p => `
-            <div class="glass-card rounded-2xl overflow-hidden group relative">
-                <div class="h-48 overflow-hidden relative bg-gray-100">
-                    <img src="${p.imagen || 'https://via.placeholder.com/300x200?text=Sin+Imagen'}" 
-                         alt="${p.nombre}" 
-                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                    <div class="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="editarProducto('${p.id}')" class="w-8 h-8 rounded-full bg-white text-blue-500 shadow-md flex items-center justify-center hover:bg-blue-50">
-                            <i class="fas fa-edit"></i>
+        tbody.innerHTML = displayProducts.map(p => `
+            <tr class="hover:bg-gray-50/50 transition-colors group">
+                <td class="px-4 py-3">
+                    <div class="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 border border-gray-100">
+                        <img src="${p.imagen || 'https://via.placeholder.com/300x200?text=Sin+Imagen'}" 
+                             alt="${p.nombre}" 
+                             class="w-full h-full object-cover">
+                    </div>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="font-bold text-gray-800 text-sm leading-tight">${p.nombre}</div>
+                    <div class="text-[10px] text-gray-400 md:hidden uppercase font-bold mt-0.5">${p.categoria}</div>
+                    <div class="text-[10px] text-gray-500 line-clamp-1 mt-1 font-medium">${p.descripcion || "Sin descripción"}</div>
+                </td>
+                <td class="px-4 py-3 hidden md:table-cell">
+                    <span class="px-2 py-1 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-bold uppercase tracking-wider">${p.categoria}</span>
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <div class="font-black text-yummy-brown text-sm">$${p.precio}</div>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center justify-center gap-2">
+                        <button onclick="editarProducto('${p.id}')" 
+                                class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all"
+                                title="Editar">
+                            <i class="fas fa-edit text-xs"></i>
                         </button>
-                        <button onclick="eliminarProducto('${p.id}', '${p.imagen}')" class="w-8 h-8 rounded-full bg-white text-red-500 shadow-md flex items-center justify-center hover:bg-red-50">
-                            <i class="fas fa-trash"></i>
+                        <button onclick="eliminarProducto('${p.id}', '${p.imagen}')" 
+                                class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+                                title="Eliminar">
+                            <i class="fas fa-trash text-xs"></i>
                         </button>
                     </div>
-                    <div class="absolute bottom-2 left-2 px-2 py-1 bg-white/80 backdrop-blur-sm rounded-lg text-xs font-bold text-yummy-brown">
-                        $${p.precio}
-                    </div>
-                </div>
-                <div class="p-4">
-                    <h3 class="font-bold text-gray-800 text-lg leading-tight mb-1">${p.nombre}</h3>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">${p.categoria}</p>
-                    <p class="text-sm text-gray-600 line-clamp-2">${p.descripcion || ""}</p>
-                </div>
-            </div>
+                </td>
+            </tr>
         `).join('');
 
     } catch (error) {
         console.error(error);
-        grid.innerHTML = '<div class="col-span-full text-center text-red-500">Error al cargar productos</div>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-red-500 py-10">Error al cargar productos</td></tr>';
     }
 }
 
@@ -1144,15 +1173,31 @@ function setupEventListeners() {
         }
     });
 
-    // Date inputs
+    // Date inputs (Desktop & Mobile)
     const d1 = document.getElementById('date-start');
     const d2 = document.getElementById('date-end');
-    if (d1 && d2) {
-        d1.value = STATE.range.start;
-        d2.value = STATE.range.end;
-        d1.onchange = () => { STATE.range.start = d1.value; aplicarFiltros(); };
-        d2.onchange = () => { STATE.range.end = d2.value; aplicarFiltros(); };
-    }
+    const d1m = document.getElementById('date-start-m');
+    const d2m = document.getElementById('date-end-m');
+
+    const updateAll = (start, end) => {
+        STATE.range.start = start;
+        STATE.range.end = end;
+        if (d1) d1.value = start;
+        if (d1m) d1m.value = start;
+        if (d2) d2.value = end;
+        if (d2m) d2m.value = end;
+        aplicarFiltros();
+    };
+
+    if (d1) d1.value = STATE.range.start;
+    if (d1m) d1m.value = STATE.range.start;
+    if (d2) d2.value = STATE.range.end;
+    if (d2m) d2m.value = STATE.range.end;
+
+    if (d1) d1.onchange = () => updateAll(d1.value, STATE.range.end);
+    if (d1m) d1m.onchange = () => updateAll(d1m.value, STATE.range.end);
+    if (d2) d2.onchange = () => updateAll(STATE.range.start, d2.value);
+    if (d2m) d2m.onchange = () => updateAll(STATE.range.start, d2m.value);
 
     // Pin Pad Listeners (Click)
     document.querySelectorAll('.pin-btn[data-num]').forEach(btn => {
