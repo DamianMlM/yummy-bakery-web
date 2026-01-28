@@ -918,17 +918,51 @@ window.eliminarProducto = async function (id, imgUrl) {
 
 // Image handling
 const fileInput = document.getElementById('prod-imagen');
+const dropZone = document.getElementById('drop-zone');
+
 if (fileInput) {
     fileInput.addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                showImagePreview(e.target.result);
-            }
-            reader.readAsDataURL(file);
+        handleImageSelect(e.target.files[0]);
+    });
+}
+
+if (dropZone) {
+    // Prevent defaults for drag events
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
+
+    // Visual feedback
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('bg-orange-50', 'border-yummy-accent'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('bg-orange-50', 'border-yummy-accent'), false);
+    });
+
+    // Handle dropped files
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        if (file && file.type.startsWith('image/')) {
+            fileInput.files = dt.files; // Sync with hidden input
+            handleImageSelect(file);
         }
     });
+}
+
+function handleImageSelect(file) {
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            showImagePreview(e.target.result);
+        }
+        reader.readAsDataURL(file);
+    }
 }
 
 function showImagePreview(src) {
@@ -1160,26 +1194,53 @@ function setupEventListeners() {
     if (formProd) {
         formProd.addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log("admin.js: Formulario de producto enviado");
+
             const id = document.getElementById('prod-id').value;
-            const data = {
-                id: id,
-                nombre: document.getElementById('prod-nombre').value,
-                categoria: document.getElementById('prod-categoria').value,
-                precio: document.getElementById('prod-precio').value,
-                descripcion: document.getElementById('prod-descripcion').value,
-                imagen: document.getElementById('img-preview').src || ""
-            };
+            const previewSrc = document.getElementById('img-preview').src;
             const file = document.getElementById('prod-imagen').files[0];
 
+            // Validamos que si NO hay archivo nuevo, pasemos la URL actual (no el base64 si es posible)
+            // Pero si el preview es el actual URL del producto, está bien.
+            // Si el preview es Base64, el Manager lo ignorará a menos que 'file' esté presente.
+            const data = {
+                id: id,
+                nombre: document.getElementById('prod-nombre').value.trim(),
+                categoria: document.getElementById('prod-categoria').value,
+                precio: document.getElementById('prod-precio').value,
+                descripcion: document.getElementById('prod-descripcion').value.trim(),
+                imagen: previewSrc || "" // Pass current preview (might be URL or Base64)
+            };
+
+            if (!data.nombre || !data.precio) {
+                Swal.fire('Error', 'Nombre y precio son obligatorios', 'warning');
+                return;
+            }
+
             try {
-                Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                await ProductsManager.saveProduct(data, file);
+                Swal.fire({
+                    title: 'Guardando...',
+                    text: 'Esto puede demorar unos segundos dependiendo del tamaño de la imagen.',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                const result = await ProductsManager.saveProduct(data, file);
+                console.log("admin.js: Guardado exitoso", result);
+
                 cerrarModalProducto();
-                renderProducts();
-                Swal.fire('¡Éxito!', 'Producto guardado correctamente', 'success');
-            } catch (e) {
-                console.error(e);
-                Swal.fire('Error', 'No se pudo guardar el producto', 'error');
+                renderProducts(); // Refresh list
+
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: id ? 'Producto actualizado correctamente' : 'Producto creado correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } catch (err) {
+                console.error("admin.js: Error al guardar producto", err);
+                Swal.fire('Error', err.message || 'No se pudo guardar el producto', 'error');
             }
         });
     }

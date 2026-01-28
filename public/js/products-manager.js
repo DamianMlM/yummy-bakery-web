@@ -14,49 +14,72 @@ export const ProductsManager = {
 
     async uploadImage(file) {
         if (!file) return null;
+        console.log("ProductsManager: Iniciando subida de imagen...", file.name, file.size);
         try {
-            const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+            const storagePath = `products/${Date.now()}_${file.name}`;
+            const storageRef = ref(storage, storagePath);
+            console.log("ProductsManager: Path de storage dest:", storagePath);
+
             const snapshot = await uploadBytes(storageRef, file);
+            console.log("ProductsManager: Subida exitosa, obteniendo URL...");
+
             const downloadURL = await getDownloadURL(snapshot.ref);
+            console.log("ProductsManager: URL obtenida:", downloadURL);
             return downloadURL;
         } catch (error) {
-            console.error("Error uploading image:", error);
+            console.error("ProductsManager: Error CRÍTICO en uploadImage:", error);
             throw error;
         }
     },
 
     async saveProduct(productData, imageFile) {
+        console.log("ProductsManager: Guardando producto...", productData.nombre, { hasFile: !!imageFile });
         try {
             let imageUrl = productData.imagen;
 
+            // Si hay un nuevo archivo, intentamos subirlo
             if (imageFile) {
-                imageUrl = await this.uploadImage(imageFile);
+                try {
+                    imageUrl = await this.uploadImage(imageFile);
+                } catch (uploadError) {
+                    console.error("ProductsManager: Falló la subida de imagen, deteniendo guardado.");
+                    throw new Error("No se pudo subir la imagen. Verifica tu conexión o configuración de Firebase Storage.");
+                }
+            } else {
+                // Si NO hay archivo nuevo, nos aseguramos de que no estemos guardando un string base64 accidentalmente
+                // (los previews suelen empezar con data:image/...)
+                if (imageUrl && imageUrl.startsWith('data:image')) {
+                    console.warn("ProductsManager: Se detectó un preview Base64 sin archivo nuevo. Ignorando imagen para evitar saturar base de datos.");
+                    imageUrl = ""; // O podrías intentar recuperar la original si estuviera en productData.oldImagen
+                }
             }
 
             const cleanData = {
                 nombre: productData.nombre,
                 descripcion: productData.descripcion || "",
-                precio: parseFloat(productData.precio),
+                precio: parseFloat(productData.precio) || 0,
                 categoria: productData.categoria,
                 imagen: imageUrl || "",
-                activo: true
+                activo: true,
+                ultimaActualizacion: new Date().toISOString()
             };
 
+            console.log("ProductsManager: Escribiendo en Firestore...", cleanData);
+
             if (productData.id) {
-                // Update
                 const productRef = doc(db, "productos", productData.id);
                 await updateDoc(productRef, cleanData);
+                console.log("ProductsManager: Producto actualizado con éxito ID:", productData.id);
                 return { id: productData.id, ...cleanData };
             } else {
-                // Create
-                // Use formatted ID or auto-gen? Using name-based ID for cleaner URLs matches user preference usually
-                const newId = productData.nombre.toLowerCase().replace(/\s+/g, '-');
+                const newId = productData.nombre.toLowerCase().trim().replace(/\s+/g, '-');
                 const productRef = doc(db, "productos", newId);
                 await setDoc(productRef, cleanData);
+                console.log("ProductsManager: Producto creado con éxito ID:", newId);
                 return { id: newId, ...cleanData };
             }
         } catch (error) {
-            console.error("Error saving product:", error);
+            console.error("ProductsManager: Error en saveProduct:", error);
             throw error;
         }
     },
