@@ -211,6 +211,7 @@ function cargarDatos() {
             // Firestore data: { cliente: {...}, items: [...], total: 123, ... }
             const p = {
                 id: pid,
+                folio: data.folio || pid.substr(0, 5), // Folio secuencial o ID truncado como fallback
                 fecha: data.fecha, // ISO String
                 hora: new Date(data.fecha).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
                 cliente: data.cliente?.nombre || "Anonimo",
@@ -328,7 +329,7 @@ function renderKanban() {
 
             card.innerHTML = `
                 <div class="flex justify-between items-start mb-2">
-                    <span class="font-bold text-[#4A3728] text-sm md:text-base cursor-pointer hover:underline" onclick="verDetallePedido('${p.id}')">#${p.id.substr(0, 4)} ${p.cliente}</span>
+                    <span class="font-bold text-[#4A3728] text-sm md:text-base cursor-pointer hover:underline" onclick="verDetallePedido('${p.id}')">#${p.folio} ${p.cliente}</span>
                     <span class="text-[10px] px-2 py-1 rounded-full ${tagColor} font-bold flex items-center gap-1">
                         ${metodoIcon} ${p.metodo === 'envio' ? 'Envío' : 'Recoger'}
                     </span>
@@ -381,9 +382,9 @@ function renderList() {
         return `
             <tr class="hover:bg-gray-50/80 transition-colors group">
                 <td class="px-6 py-4">
-                    <button onclick="copyToClipboard('${p.id}')" title="Clic para copiar ID"
+                    <button onclick="copyToClipboard('${p.folio}')" title="Clic para copiar Folio"
                         class="text-[10px] font-mono font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded-md hover:bg-yummy-accent hover:text-white transition-all">
-                        #${p.id.substr(0, 5)}
+                        #${p.folio}
                     </button>
                 </td>
                 <td class="px-6 py-4">

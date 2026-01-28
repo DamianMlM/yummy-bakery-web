@@ -341,7 +341,7 @@
 
   <footer class="text-center py-10 mb-24 border-t border-[#F2E7D5] px-4">
     <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-4">Síguenos en redes</p>
-    <div class="flex justify-center gap-4">
+    <div class="flex justify-center gap-4 mb-6">
       <a href="https://www.facebook.com/share/1D83NY6AYf/?mibextid=wwXIfr" target="_blank"
         class="social-btn w-12 h-12 flex items-center justify-center bg-white text-[#1877F2] rounded-full shadow-sm border border-gray-100 transition-all">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -366,7 +366,12 @@
         </svg>
       </a>
     </div>
-    <p class="text-[10px] text-gray-300 mt-6">© 2026 Yummy Bakery</p>
+    <div class="mb-4">
+      <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Creado por:</p>
+      <a href="https://www.instagram.com/dml.6m?igsh=MTI3emRlcjkybjd6Mw%3D%3D&utm_source=qr" target="_blank"
+        class="text-xs text-stone-600 font-bold hover:text-stone-800 transition-colors">@dml.6m</a>
+    </div>
+    <p class="text-[10px] text-gray-300">© 2026 Yummy Bakery</p>
   </footer>
 
   <div id="custom-alert"
@@ -387,7 +392,7 @@
   <script src="js/config.js"></script>
   <script type="module">
     import { db } from './js/firebase-config.js';
-    import { collection, getDocs, addDoc, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { collection, getDocs, addDoc, doc, getDoc, setDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     var PRODUCTOS = [], EXTRAS = [];
     var carrito = [], metodoEntrega = 'recoger', metodoPago = 'efectivo', COSTO_ENVIO = 10;
@@ -683,16 +688,31 @@
       btn.disabled = true;
 
       // 3. Preparar datos
-      var orden = {
-        fecha: new Date().toISOString(),
-        cliente: { nombre: nom, tel: tel, email: document.getElementById('cli-email').value, direccion: (metodoEntrega === 'envio' ? dir : 'Recoger en tienda') },
-        metodo: metodoEntrega, pago: metodoPago, observaciones: obs,
-        items: carrito.map(c => ({ categoria: c.cat, nombre: c.nom, precioBase: c.base, cantidad: c.qty, extrasTexto: c.xTxt, subtotal: c.sub })),
-        total: parseFloat(document.getElementById('lbl-total-final').innerText),
-        estatus: "Pendiente"
-      };
-
       try {
+        // 3. OBTENER FOLIO SECUENCIAL
+        const nestedFolio = await runTransaction(db, async (transaction) => {
+          const counterRef = doc(db, "config", "counters");
+          const counterSnap = await transaction.get(counterRef);
+
+          let nextValue = 100; // Iniciar en 100 por estética
+          if (counterSnap.exists()) {
+            nextValue = (counterSnap.data().pedidos || 100) + 1;
+          }
+
+          transaction.set(counterRef, { pedidos: nextValue }, { merge: true });
+          return `Y-${nextValue}`;
+        });
+
+        var orden = {
+          folio: nestedFolio,
+          fecha: new Date().toISOString(),
+          cliente: { nombre: nom, tel: tel, email: document.getElementById('cli-email').value, direccion: (metodoEntrega === 'envio' ? dir : 'Recoger en tienda') },
+          metodo: metodoEntrega, pago: metodoPago, observaciones: obs,
+          items: carrito.map(c => ({ categoria: c.cat, nombre: c.nom, precioBase: c.base, cantidad: c.qty, extrasTexto: c.xTxt, subtotal: c.sub })),
+          total: parseFloat(document.getElementById('lbl-total-final').innerText),
+          estatus: "Pendiente"
+        };
+
         // 4. Registrar/Actualizar Cliente
         const email = document.getElementById('cli-email').value.trim();
         if (email) {
@@ -717,6 +737,7 @@
           }
         }
 
+        // 5. Guardar Pedido
         await addDoc(collection(db, "pedidos"), orden);
 
         document.getElementById('modal-checkout').classList.add('hidden');

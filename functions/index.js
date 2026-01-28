@@ -64,7 +64,7 @@ exports.confirmacionPedido = functions.firestore
                <p style="color:#000; font-weight:bold; font-size:16px;">Banco: NU (STP)</p>
                <p style="background:#f0e6f7; display:inline-block; padding:5px 10px; border-radius:6px; font-weight:bold; font-size:18px;">CLABE: 638180000189543165</p>
                <p>Beneficiaria: Leticia Mariscal Miranda</p>
-               <p style="background:#820AD1; color:white; padding:10px; border-radius:8px;">⚠️ Concepto: #${id.substr(0, 5)}</p>
+               <p style="background:#820AD1; color:white; padding:10px; border-radius:8px;">⚠️ Concepto: ${pedido.folio || id.substr(0, 5)}</p>
                <p style="font-size: 11px; color: #6b7280; margin-top: 10px;">Por favor, envía tu comprobante por WhatsApp.</p>
             </div>`;
         } else {
@@ -86,7 +86,7 @@ exports.confirmacionPedido = functions.firestore
         const mailOptions = {
             from: `"${APP_NAME}" <${gmailEmail}>`,
             to: email,
-            subject: `🥐 ¡Pedido Recibido! #${id.substr(0, 5)} - ${APP_NAME}`,
+            subject: `🥐 ¡Pedido Recibido! #${pedido.folio || id.substr(0, 5)} - ${APP_NAME}`,
             html: `
             <div style="background-color: #fdfbf7; padding: 20px; font-family: 'Poppins', sans-serif;">
                 <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;">
