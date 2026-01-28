@@ -897,132 +897,133 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- MODAL DETALLE DE PEDIDO (CRM) -->
-        <div id="modal-detalle-pedido" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="cerrarModalDetalle()"></div>
-            <div class="relative bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-fade-in overflow-hidden">
-                <!-- Header Modal -->
-                <div class="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center">
+    <!-- MODAL DETALLE DE PEDIDO (CRM) -->
+    <div id="modal-detalle-pedido" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="cerrarModalDetalle()"></div>
+        <div class="relative bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-fade-in overflow-hidden">
+            <!-- Header Modal -->
+            <div class="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold text-yummy-brown" id="det-id-display">Pedido #0000</h3>
+                    <p class="text-xs text-gray-400" id="det-fecha-display">00/00/0000 00:00</p>
+                </div>
+                <button onclick="cerrarModalDetalle()"
+                    class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-times text-gray-500"></i>
+                </button>
+            </div>
+
+            <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                <!-- Cliente Info -->
+                <div class="grid grid-cols-2 gap-4 bg-orange-50/50 p-4 rounded-3xl border border-orange-100/50">
                     <div>
-                        <h3 class="text-xl font-bold text-yummy-brown" id="det-id-display">Pedido #0000</h3>
-                        <p class="text-xs text-gray-400" id="det-fecha-display">00/00/0000 00:00</p>
+                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Cliente</p>
+                        <p class="text-sm font-bold text-gray-800" id="det-cliente"></p>
                     </div>
-                    <button onclick="cerrarModalDetalle()"
-                        class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
-                        <i class="fas fa-times text-gray-500"></i>
-                    </button>
+                    <div>
+                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Teléfono</p>
+                        <p class="text-sm font-medium text-gray-600" id="det-tel"></p>
+                    </div>
+                    <div class="col-span-2">
+                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Dirección de Entrega</p>
+                        <p class="text-sm text-gray-600 line-clamp-2" id="det-dir"></p>
+                    </div>
                 </div>
 
-                <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
-                    <!-- Cliente Info -->
-                    <div class="grid grid-cols-2 gap-4 bg-orange-50/50 p-4 rounded-3xl border border-orange-100/50">
-                        <div>
-                            <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Cliente</p>
-                            <p class="text-sm font-bold text-gray-800" id="det-cliente"></p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Teléfono</p>
-                            <p class="text-sm font-medium text-gray-600" id="det-tel"></p>
-                        </div>
-                        <div class="col-span-2">
-                            <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Dirección de Entrega</p>
-                            <p class="text-sm text-gray-600 line-clamp-2" id="det-dir"></p>
-                        </div>
+                <!-- Tabla Productos -->
+                <div>
+                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-3 px-2">Detalle de Productos</p>
+                    <div class="space-y-2" id="det-items-list">
+                        <!-- ITEMS INJECTED -->
                     </div>
-
-                    <!-- Tabla Productos -->
-                    <div>
-                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-3 px-2">Detalle de Productos</p>
-                        <div class="space-y-2" id="det-items-list">
-                            <!-- ITEMS INJECTED -->
-                        </div>
-                        <div class="mt-4 flex justify-between items-center px-4 py-3 bg-gray-50 rounded-2xl">
-                            <span class="text-sm font-bold text-gray-500 uppercase">Total Pagado</span>
-                            <span class="text-xl font-black text-yummy-brown" id="det-total-display">$0.00</span>
-                        </div>
+                    <div class="mt-4 flex justify-between items-center px-4 py-3 bg-gray-50 rounded-2xl">
+                        <span class="text-sm font-bold text-gray-500 uppercase">Total Pagado</span>
+                        <span class="text-xl font-black text-yummy-brown" id="det-total-display">$0.00</span>
                     </div>
+                </div>
 
-                    <!-- Observaciones -->
-                    <div id="det-obs-box" class="hidden">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-2">Observaciones</p>
-                        <div class="bg-red-50 text-red-700 text-xs p-3 rounded-xl border border-red-100" id="det-obs">
-                        </div>
+                <!-- Observaciones -->
+                <div id="det-obs-box" class="hidden">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-2">Observaciones</p>
+                    <div class="bg-red-50 text-red-700 text-xs p-3 rounded-xl border border-red-100" id="det-obs">
                     </div>
+                </div>
 
-                    <!-- Selector de Estatus -->
-                    <div class="space-y-3">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold mb-1 px-2">Cambiar Estado del Pedido</p>
-                        <select id="det-status-select"
-                            class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 px-4 outline-none focus:border-yummy-accent transition-all font-bold text-gray-700">
-                            <option value="Pendiente">🟡 Pedido Pendiente</option>
-                            <option value="Horneando">🔵 En el Horno</option>
-                            <option value="Entregado">🟢 Listo / Entregado</option>
-                            <option value="Finalizado">✨ Finalizado</option>
-                            <option value="Cancelado">🔴 Cancelado</option>
+                <!-- Selector de Estatus -->
+                <div class="space-y-3">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold mb-1 px-2">Cambiar Estado del Pedido</p>
+                    <select id="det-status-select"
+                        class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 px-4 outline-none focus:border-yummy-accent transition-all font-bold text-gray-700">
+                        <option value="Pendiente">🟡 Pedido Pendiente</option>
+                        <option value="Horneando">🔵 En el Horno</option>
+                        <option value="Entregado">🟢 Listo / Entregado</option>
+                        <option value="Finalizado">✨ Finalizado</option>
+                        <option value="Cancelado">🔴 Cancelado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="p-6 border-t border-gray-100 flex gap-3">
+                <button onclick="cerrarModalDetalle()"
+                    class="flex-1 py-3 text-gray-400 font-bold hover:text-gray-600 transition-colors">
+                    Descartar
+                </button>
+                <button id="btn-save-status"
+                    class="flex-[2] bg-yummy-brown text-white py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TOPPINGS/EXTRAS -->
+    <div id="modal-toppings" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="cerrarModalToppings()"></div>
+        <div class="relative bg-white rounded-3xl w-full max-w-lg shadow-2xl animate-fade-in overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+                <h3 class="text-xl font-bold text-yummy-brown">Gestionar Toppings / Extras</h3>
+                <button onclick="cerrarModalToppings()"
+                    class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-times text-gray-400"></i>
+                </button>
+            </div>
+            <div class="p-6">
+
+                <form id="form-topping" class="space-y-4 mb-6">
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="text" id="top-nombre" placeholder="Nombre Topping" required
+                            class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
+                        <input type="number" id="top-precio" placeholder="Precio ($)" step="0.50" required
+                            class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="top-categoria-select" required
+                            class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
+                            <option value="">Selecciona Categoría</option>
+                            <!-- JS Injected -->
                         </select>
+                        <button type="submit"
+                            class="bg-yummy-brown text-white px-6 py-2 rounded-xl shadow-md hover:bg-gray-800 transition-all">
+                            <i class="fas fa-plus mr-1"></i> Agregar
+                        </button>
                     </div>
+                </form>
+
+                <div class="max-h-80 overflow-y-auto space-y-4" id="lista-toppings-container">
+                    <!-- Grouped by category -->
                 </div>
 
-                <!-- Footer Modal -->
-                <div class="p-6 border-t border-gray-100 flex gap-3">
-                    <button onclick="cerrarModalDetalle()"
-                        class="flex-1 py-3 text-gray-400 font-bold hover:text-gray-600 transition-colors">
-                        Descartar
-                    </button>
-                    <button id="btn-save-status"
-                        class="flex-[2] bg-yummy-brown text-white py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i> Guardar Cambios
-                    </button>
-                </div>
+                <button onclick="cerrarModalToppings()"
+                    class="text-gray-400 hover:text-gray-600 font-medium">Cerrar</button>
             </div>
         </div>
+    </div>
 
-        <!-- MODAL TOPPINGS/EXTRAS -->
-        <div id="modal-toppings" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="cerrarModalToppings()"></div>
-            <div class="relative bg-white rounded-3xl w-full max-w-lg shadow-2xl animate-fade-in overflow-hidden">
-                <div class="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
-                    <h3 class="text-xl font-bold text-yummy-brown">Gestionar Toppings / Extras</h3>
-                    <button onclick="cerrarModalToppings()"
-                        class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
-                        <i class="fas fa-times text-gray-400"></i>
-                    </button>
-                </div>
-                <div class="p-6">
-
-                    <form id="form-topping" class="space-y-4 mb-6">
-                        <div class="grid grid-cols-2 gap-3">
-                            <input type="text" id="top-nombre" placeholder="Nombre Topping" required
-                                class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
-                            <input type="number" id="top-precio" placeholder="Precio ($)" step="0.50" required
-                                class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
-                        </div>
-                        <div class="flex gap-2">
-                            <select id="top-categoria-select" required
-                                class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-yummy-accent transition-colors">
-                                <option value="">Selecciona Categoría</option>
-                                <!-- JS Injected -->
-                            </select>
-                            <button type="submit"
-                                class="bg-yummy-brown text-white px-6 py-2 rounded-xl shadow-md hover:bg-gray-800 transition-all">
-                                <i class="fas fa-plus mr-1"></i> Agregar
-                            </button>
-                        </div>
-                    </form>
-
-                    <div class="max-h-80 overflow-y-auto space-y-4" id="lista-toppings-container">
-                        <!-- Grouped by category -->
-                    </div>
-
-                    <button onclick="cerrarModalToppings()"
-                        class="text-gray-400 hover:text-gray-600 font-medium">Cerrar</button>
-                </div>
-            </div>
-        </div>
-
-        <script src="js/config.js"></script>
-        <script type="module" src="js/admin.js"></script>
+    <script src="js/config.js"></script>
+    <script type="module" src="js/admin.js"></script>
 </body>
 
 </html>

@@ -740,19 +740,17 @@ async function renderProducts() {
     console.log("Rendering products...");
     const tbody = document.getElementById('productos-list-body');
     if (!tbody) {
-        alert("CRITICAL ERROR: No se encontró el elemento #productos-list-body en el DOM.");
+        console.error("Target tbody #productos-list-body not found!");
         return;
     }
 
     tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-yummy-brown"></i><p class="mt-2 text-xs text-gray-400">Cargando catálogo...</p></td></tr>`;
 
     try {
-        console.log("Fetching products and categories from Firebase...");
         const [products, categories] = await Promise.all([
             ProductsManager.loadProducts(),
             ProductsManager.loadCategories()
         ]);
-        alert("Firebase respondió: " + products.length + " productos encontrados.");
 
         STATE.productsRaw = products;
         STATE.categories = categories;
