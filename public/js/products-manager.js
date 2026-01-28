@@ -14,43 +14,50 @@ export const ProductsManager = {
 
     async uploadImage(file) {
         if (!file) return null;
-        console.log("ProductsManager: Iniciando subida de imagen...", file.name, file.size);
+        console.group("🔥 ProductsManager: Upload Debug");
+        console.log("Archivo:", file.name, "Tipo:", file.type, "Tamaño:", (file.size / 1024).toFixed(2), "KB");
+
         try {
             const storagePath = `products/${Date.now()}_${file.name}`;
             const storageRef = ref(storage, storagePath);
-            console.log("ProductsManager: Path de storage dest:", storagePath);
+            console.log("Intentando subida a:", storagePath);
 
+            console.log("Llamando a uploadBytes...");
             const snapshot = await uploadBytes(storageRef, file);
-            console.log("ProductsManager: Subida exitosa, obteniendo URL...");
+            console.log("Snapshot recibido. Estado:", snapshot.metadata.fullPath);
 
+            console.log("Obteniendo URL de descarga...");
             const downloadURL = await getDownloadURL(snapshot.ref);
-            console.log("ProductsManager: URL obtenida:", downloadURL);
+            console.log("ÉXITO. URL:", downloadURL);
+            console.groupEnd();
             return downloadURL;
         } catch (error) {
-            console.error("ProductsManager: Error CRÍTICO en uploadImage:", error);
+            console.error("ERROR CRÍTICO en uploadImage:", error);
+            console.groupEnd();
             throw error;
         }
     },
 
     async saveProduct(productData, imageFile) {
-        console.log("ProductsManager: Guardando producto...", productData.nombre, { hasFile: !!imageFile });
+        console.group("🚀 ProductsManager: saveProduct");
+        console.log("Producto:", productData.nombre, { hasFile: !!imageFile });
         try {
             let imageUrl = productData.imagen;
 
-            // Si hay un nuevo archivo, intentamos subirlo
             if (imageFile) {
+                console.log("Se detectó archivo nuevo. Procediendo a subir...");
                 try {
                     imageUrl = await this.uploadImage(imageFile);
                 } catch (uploadError) {
-                    console.error("ProductsManager: Falló la subida de imagen, deteniendo guardado.");
-                    throw new Error("No se pudo subir la imagen. Verifica tu conexión o configuración de Firebase Storage.");
+                    console.error("Fallo crítico en uploadImage:", uploadError);
+                    console.groupEnd();
+                    throw new Error(`Error de subida: ${uploadError.message}. ¿Está activado 'Storage' en tu consola Firebase?`);
                 }
             } else {
-                // Si NO hay archivo nuevo, nos aseguramos de que no estemos guardando un string base64 accidentalmente
-                // (los previews suelen empezar con data:image/...)
+                console.log("No hay archivo nuevo. Usando URL previa o vacía.");
                 if (imageUrl && imageUrl.startsWith('data:image')) {
-                    console.warn("ProductsManager: Se detectó un preview Base64 sin archivo nuevo. Ignorando imagen para evitar saturar base de datos.");
-                    imageUrl = ""; // O podrías intentar recuperar la original si estuviera en productData.oldImagen
+                    console.warn("Se ignoró cadena Base64 para evitar saturar base de datos.");
+                    imageUrl = "";
                 }
             }
 
@@ -69,17 +76,20 @@ export const ProductsManager = {
             if (productData.id) {
                 const productRef = doc(db, "productos", productData.id);
                 await updateDoc(productRef, cleanData);
-                console.log("ProductsManager: Producto actualizado con éxito ID:", productData.id);
+                console.log("ÉXITO: Producto actualizado.");
+                console.groupEnd();
                 return { id: productData.id, ...cleanData };
             } else {
                 const newId = productData.nombre.toLowerCase().trim().replace(/\s+/g, '-');
                 const productRef = doc(db, "productos", newId);
                 await setDoc(productRef, cleanData);
-                console.log("ProductsManager: Producto creado con éxito ID:", newId);
+                console.log("ÉXITO: Producto creado.");
+                console.groupEnd();
                 return { id: newId, ...cleanData };
             }
         } catch (error) {
-            console.error("ProductsManager: Error en saveProduct:", error);
+            console.error("ERROR en saveProduct:", error);
+            console.groupEnd();
             throw error;
         }
     },

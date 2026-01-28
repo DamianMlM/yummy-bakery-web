@@ -1201,9 +1201,11 @@ function setupEventListeners() {
             const previewSrc = document.getElementById('img-preview').src;
             const file = document.getElementById('prod-imagen').files[0];
 
-            // Validamos que si NO hay archivo nuevo, pasemos la URL actual (no el base64 si es posible)
-            // Pero si el preview es el actual URL del producto, está bien.
-            // Si el preview es Base64, el Manager lo ignorará a menos que 'file' esté presente.
+            if (file) {
+                console.log("Archivo seleccionado para subir:", file.name, file.size, "bytes");
+            } else {
+                console.log("No se seleccionó archivo nuevo para subir.");
+            }
             const data = {
                 id: id,
                 nombre: document.getElementById('prod-nombre').value.trim(),
