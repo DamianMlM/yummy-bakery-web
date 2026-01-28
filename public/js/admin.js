@@ -302,13 +302,10 @@ function renderList() {
     if (!tbody) return;
 
     const searchTerm = document.getElementById('order-search')?.value.toLowerCase() || "";
-    const dateFilter = document.getElementById('order-date-filter')?.value || "";
 
-    // Filtrado Universal (ID, Cliente) + Fecha Específica
+    // Filtrado Universal (ID, Cliente)
     let filtered = STATE.pedidosFiltered.filter(p => {
-        const matchesSearch = p.id.toLowerCase().includes(searchTerm) || p.cliente.toLowerCase().includes(searchTerm);
-        const matchesDate = !dateFilter || p.fecha.startsWith(dateFilter);
-        return matchesSearch && matchesDate;
+        return p.id.toLowerCase().includes(searchTerm) || p.cliente.toLowerCase().includes(searchTerm);
     });
 
     if (filtered.length === 0) {
