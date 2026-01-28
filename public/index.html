@@ -192,6 +192,13 @@
     </div>
     <h1 class="font-serif text-3xl text-[#4A3728] tracking-tight">Yummy Bakery</h1>
     <p class="text-sm text-gray-500 mt-2 px-8 leading-relaxed max-w-xs mx-auto">Delicioso pan artesanal</p>
+
+    <!-- BANNER TIENDA CERRADA -->
+    <div id="banner-cerrado" class="hidden animate-fade mt-4 mx-4 bg-red-50 border border-red-100 p-4 rounded-2xl">
+      <p class="text-red-600 font-bold text-xs uppercase tracking-widest">🚫 Tienda Cerrada</p>
+      <p class="text-red-500 text-[11px] mt-1">Por el momento dejamos de recibir pedidos. ¡Estate atento a nuestras
+        redes sociales para la próxima fecha!</p>
+    </div>
   </header>
 
   <nav class="sticky top-0 bg-[#FDFBF7]/95 backdrop-blur-md z-30 py-3 shadow-sm border-b border-white/50">
@@ -209,7 +216,7 @@
         <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total</span>
         <span class="text-2xl font-serif font-bold text-[#4A3728] leading-none">$<span id="total-price">0</span></span>
       </div>
-      <button onclick="verResumen()"
+      <button onclick="verResumen()" id="btn-cart-float"
         class="bg-[#4A3728] text-white flex-1 py-3.5 rounded-xl font-bold text-sm uppercase tracking-wide shadow-lg shadow-[#4A3728]/20 flex items-center justify-center gap-2 active:scale-95 transition-transform">
         <span>Ver Pedido</span>
         <span class="bg-white/20 text-white px-2 py-0.5 rounded-md text-xs backdrop-blur-md" id="cart-count">0</span>
@@ -274,6 +281,12 @@
             </div>
             <div id="cont-dir" class="hidden"><input id="cli-dir" type="text" placeholder="Calle y Número..."
                 class="w-full p-3 bg-gray-50 border border-gray-100 rounded-lg text-sm outline-none focus:border-[#4A3728]">
+            </div>
+            <!-- INFO RECOGER -->
+            <div id="cont-recoger" class="mt-3 bg-stone-50 border border-stone-100 p-3 rounded-xl">
+              <p class="text-[10px] text-stone-400 font-bold uppercase tracking-widest mb-1">Punto de Entrega</p>
+              <p class="text-xs text-stone-700">📍 <strong>Arroyo Salvial 433</strong></p>
+              <p class="text-xs text-stone-500">⏰ Horario: 6:00 PM - 10:30 PM</p>
             </div>
           </div>
 
@@ -374,7 +387,7 @@
   <script src="js/config.js"></script>
   <script type="module">
     import { db } from './js/firebase-config.js';
-    import { collection, getDocs, addDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { collection, getDocs, addDoc, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
     var PRODUCTOS = [], EXTRAS = [];
     var carrito = [], metodoEntrega = 'recoger', metodoPago = 'efectivo', COSTO_ENVIO = 10;
@@ -433,6 +446,36 @@
     }
 
     initApp();
+    initStoreStatusListener();
+
+    function initStoreStatusListener() {
+      const docRef = doc(db, "config", "store_settings");
+      onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const isOpen = data.isOpen ?? true;
+          updateStoreUI(isOpen);
+        }
+      });
+    }
+
+    function updateStoreUI(isOpen) {
+      const banner = document.getElementById('banner-cerrado');
+      const cartBtn = document.getElementById('btn-cart-float').parentElement.parentElement;
+
+      if (isOpen) {
+        banner.classList.add('hidden');
+        cartBtn.classList.remove('hidden');
+      } else {
+        banner.classList.remove('hidden');
+        cartBtn.classList.add('hidden');
+        // If they had the modal open, maybe we should close it?
+        // document.getElementById('modal-checkout').classList.add('hidden');
+      }
+
+      // Re-render menu to update button states
+      renderMenu(catActual, isOpen);
+    }
 
     // ... (Keep existing UI functions: renderTabs, renderMenu, upd, modificarExtra, calcExtras, renderSingleCard, refresh, resetApp, verResumen, cerrarModal, irPaso1, irPaso2, renderList, borrarItem, setMetodo, setPago, alertUI, cerrarAlert) ...
     // Note: Since we are in a module, we need to attach functions to window explicitly if they are called by onclick attributes in HTML.
@@ -505,11 +548,11 @@
         }
       }
 
-      renderMenu(cId);
+      renderMenu(cId, true); // We'll need to know isOpen here, or handle it in updateStoreUI
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function renderMenu(cId) {
+    function renderMenu(cId, isOpen = true) {
       // Filter by category ID
       var items = PRODUCTOS.filter(p => p.categoria === cId);
 
@@ -538,12 +581,18 @@
 
         var img = p.imagen || "https://via.placeholder.com/150?text=Pan";
         var btns = qty > 0 ? `<button onclick="upd('${p.id}', -1)" class="btn-qty btn-minus">-</button><span id="q-${p.id}" class="font-bold text-sm w-4 text-center text-[#4A3728]">${qty}</span>` : '';
+
+        // DISABLE BUTTONS IF CLOSED
+        var btnPlus = isOpen ?
+          `<button onclick="upd('${p.id}', 1)" class="btn-qty btn-plus">+</button>` :
+          `<button disabled class="btn-qty bg-gray-200 text-gray-400 cursor-not-allowed">+</button>`;
+
         return `
-        <div class="card fade-in" id="card-${p.id}">
+        <div class="card fade-in ${!isOpen ? 'opacity-80' : ''}" id="card-${p.id}">
           <div class="card-main">
              <div class="card-img-box cursor-zoom-in" onclick="verImagen('${img}')"><img src="${img}" class="w-full h-full object-cover"><div class="img-overlay"><span class="text-white text-2xl">🔍</span></div></div>
              <div class="card-info"><div><h3 class="font-bold text-[#4A3728] text-sm leading-tight truncate">${p.nombre}</h3><p class="text-[10px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">${p.descripcion || ""}</p></div>
-                <div class="mt-auto pt-2 flex justify-between items-end"><span class="font-serif text-lg font-bold text-[#4A3728]">$${p.precio}</span><div class="flex items-center gap-3">${btns}<button onclick="upd('${p.id}', 1)" class="btn-qty btn-plus">+</button></div></div></div></div>
+                <div class="mt-auto pt-2 flex justify-between items-end"><span class="font-serif text-lg font-bold text-[#4A3728]">$${p.precio}</span><div class="flex items-center gap-3">${btns}${btnPlus}</div></div></div></div>
           <div id="panel-${p.id}" class="extras-panel ${open}">${htmlExtras || '<p class="text-center text-xs text-gray-300">Sin extras</p>'}</div></div>`;
       }).join('');
     }
@@ -598,8 +647,8 @@
 
     window.setMetodo = (m) => {
       metodoEntrega = m; var be = document.getElementById('btn-envio'), br = document.getElementById('btn-recoger'), d = document.getElementById('cont-dir');
-      if (m === 'envio') { be.classList.add('active'); br.classList.remove('active'); d.classList.remove('hidden'); }
-      else { be.classList.remove('active'); br.classList.add('active'); d.classList.add('hidden'); } refresh();
+      if (m === 'envio') { be.classList.add('active'); br.classList.remove('active'); d.classList.remove('hidden'); document.getElementById('cont-recoger').classList.add('hidden'); }
+      else { be.classList.remove('active'); br.classList.add('active'); d.classList.add('hidden'); document.getElementById('cont-recoger').classList.remove('hidden'); } refresh();
     }
 
     window.setPago = (p) => {

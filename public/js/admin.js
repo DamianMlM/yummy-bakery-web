@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import { seedDatabase, seedOrders, cleanupGhostData } from './seeder.js';
 import { ProductsManager } from './products-manager.js';
 
@@ -23,6 +23,7 @@ window.exportClientesExcel = exportClientesExcel;
 window.cargarDatos = cargarDatos;
 window.filterProducts = filterProducts;
 window.renderProducts = renderProducts;
+window.toggleStoreStatus = toggleStoreStatus;
 
 // ESTADO GLOBAL
 const STATE = {
@@ -59,6 +60,7 @@ function checkSesion() {
         STATE.isLogged = true;
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
+        initStoreStatusListener();
         cargarDatos();
     }
 }
@@ -73,6 +75,7 @@ function checkPin() {
         STATE.isLogged = true;
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
+        initStoreStatusListener();
         cargarDatos();
     } else {
         input.classList.add('animate-pulse', 'border-red-500');
@@ -89,6 +92,55 @@ function checkPin() {
     }
 }
 window.checkPin = checkPin;
+
+// ==========================================
+// 🏬 STORE STATUS (isOpen)
+// ==========================================
+function initStoreStatusListener() {
+    const docRef = doc(db, "config", "store_settings");
+    onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const isOpen = data.isOpen ?? true;
+            updateStatusUI(isOpen);
+        } else {
+            // Document doesn't exist, create it as open by default
+            setDoc(docRef, { isOpen: true });
+        }
+    });
+}
+
+function updateStatusUI(isOpen) {
+    const toggle = document.getElementById('store-status-toggle');
+    const text = document.getElementById('store-status-text');
+    if (toggle) toggle.checked = isOpen;
+    if (text) {
+        text.innerText = isOpen ? 'Abierto / Recibiendo' : 'Cerrado / Horno Apagado';
+        text.className = `text-[9px] font-bold uppercase tracking-wider ${isOpen ? 'text-green-500' : 'text-red-500'}`;
+    }
+}
+
+async function toggleStoreStatus() {
+    const toggle = document.getElementById('store-status-toggle');
+    if (!toggle) return;
+
+    const newState = toggle.checked;
+    const docRef = doc(db, "config", "store_settings");
+
+    try {
+        await setDoc(docRef, { isOpen: newState }, { merge: true });
+        console.log("Estado de tienda actualizado:", newState);
+    } catch (error) {
+        console.error("Error actualizando estado de tienda:", error);
+        // Revert UI on error
+        updateStatusUI(!newState);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo cambiar el estado de la tienda.'
+        });
+    }
+}
 
 window.logout = function () {
     localStorage.removeItem('yummy_pin');

@@ -78,7 +78,10 @@ exports.confirmacionPedido = functions.firestore
         // 3. Dirección de Entrega
         const infoEntrega = pedido.metodo === "envio"
             ? `<p><strong>Dirección:</strong> ${pedido.cliente.direccion}</p>`
-            : `<p style="color: #9c6644; font-weight: bold;">📍 Recoger en Tienda (Lomas de San Agustín)</p>`;
+            : `<div style="color: #9c6644; font-weight: bold; background: #faf8f5; padding: 10px; border-radius: 8px; border: 1px dashed #d4a373;">
+                <p style="margin: 0;">📍 Punto de Entrega: <strong>Arroyo Salvial 433</strong></p>
+                <p style="margin: 5px 0 0;">⏰ Horario: <strong>6:00 PM - 10:30 PM</strong></p>
+               </div>`;
 
         const mailOptions = {
             from: `"${APP_NAME}" <${gmailEmail}>`,

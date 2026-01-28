@@ -278,6 +278,19 @@
                         class="bg-transparent text-[10px] font-bold text-gray-500 outline-none w-24">
                 </div>
 
+                <!-- Store Status Toggle -->
+                <div
+                    class="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-xl border border-gray-100 shadow-inner">
+                    <span id="store-status-text"
+                        class="text-[9px] font-bold uppercase tracking-wider text-green-500">Cargando...</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="store-status-toggle" class="sr-only peer"
+                            onchange="toggleStoreStatus()">
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"
+                            id="toggle-bg"></div>
+                    </label>
+                </div>
+
                 <button onclick="cargarDatos()"
                     class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-gray-400 hover:text-yummy-brown transition-all shadow-sm">
                     <i class="fas fa-sync-alt" id="refresh-icon"></i>
