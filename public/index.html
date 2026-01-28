@@ -194,10 +194,14 @@
     <p class="text-sm text-gray-500 mt-2 px-8 leading-relaxed max-w-xs mx-auto">Delicioso pan artesanal</p>
 
     <!-- BANNER TIENDA CERRADA -->
-    <div id="banner-cerrado" class="hidden animate-fade mt-4 mx-4 bg-red-50 border border-red-100 p-4 rounded-2xl">
-      <p class="text-red-600 font-bold text-xs uppercase tracking-widest">🚫 Tienda Cerrada</p>
-      <p class="text-red-500 text-[11px] mt-1">Por el momento dejamos de recibir pedidos. ¡Estate atento a nuestras
-        redes sociales para la próxima fecha!</p>
+    <div id="banner-cerrado"
+      class="hidden animate-fade mt-4 mx-4 bg-orange-50 border border-orange-100 p-5 rounded-3xl shadow-sm">
+      <div class="flex flex-col items-center">
+        <span class="text-2xl mb-2">🌙</span>
+        <p class="text-orange-800 font-bold text-sm uppercase tracking-widest">Horario de Reposo</p>
+        <p class="text-orange-700 text-xs mt-2 text-center max-w-[240px] leading-relaxed">Nuestra repostería está
+          tomando un descanso. Regresa pronto para disfrutar de lo más dulce.</p>
+      </div>
     </div>
   </header>
 
@@ -341,7 +345,7 @@
 
   <footer class="text-center py-10 mb-24 border-t border-[#F2E7D5] px-4">
     <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-4">Síguenos en redes</p>
-    <div class="flex justify-center gap-4 mb-6">
+    <div class="flex justify-center gap-4 mb-8">
       <a href="https://www.facebook.com/share/1D83NY6AYf/?mibextid=wwXIfr" target="_blank"
         class="social-btn w-12 h-12 flex items-center justify-center bg-white text-[#1877F2] rounded-full shadow-sm border border-gray-100 transition-all">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -366,11 +370,26 @@
         </svg>
       </a>
     </div>
-    <div class="mb-4">
-      <p class="text-[9px] text-gray-400 uppercase tracking-widest font-bold">Creado por:</p>
+
+    <div class="mb-6 group">
       <a href="https://www.instagram.com/dml.6m?igsh=MTI3emRlcjkybjd6Mw%3D%3D&utm_source=qr" target="_blank"
-        class="text-xs text-stone-600 font-bold hover:text-stone-800 transition-colors">@dml.6m</a>
+        class="inline-flex flex-col items-center group transition-all duration-300">
+        <span class="text-[9px] text-stone-400 uppercase tracking-widest font-bold mb-2">Digital Experience by</span>
+        <div
+          class="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-full border border-stone-200 shadow-sm group-hover:bg-white group-hover:shadow-md transition-all scale-95 group-active:scale-90">
+          <div
+            class="w-6 h-6 rounded-full bg-gradient-to-tr from-[#DE005E] to-[#F2E7D5] flex items-center justify-center p-0.5">
+            <div
+              class="w-full h-full bg-white rounded-full flex items-center justify-center text-[10px] font-bold text-stone-800">
+              D</div>
+          </div>
+          <span class="text-xs text-stone-700 font-bold tracking-tight">@dml.6m</span>
+          <span class="text-stone-300 text-xs">|</span>
+          <span class="text-[10px] text-stone-500 font-medium">Follow</span>
+        </div>
+      </a>
     </div>
+
     <p class="text-[10px] text-gray-300">© 2026 Yummy Bakery</p>
   </footer>
 
