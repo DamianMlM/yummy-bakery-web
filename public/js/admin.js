@@ -10,11 +10,19 @@ window.cleanupGhostData = cleanupGhostData;
 window.renderProduction = renderProduction;
 window.abrirModalToppings = abrirModalToppings;
 window.cerrarModalToppings = cerrarModalToppings;
+window.abrirModalCategorias = abrirModalCategorias;
+window.cerrarModalCategorias = cerrarModalCategorias;
+window.abrirModalProducto = abrirModalProducto;
+window.cerrarModalProducto = cerrarModalProducto;
+window.editarProducto = editarProducto;
+window.eliminarProducto = eliminarProducto;
 window.cerrarModalDetalle = cerrarModalDetalle;
 window.copyToClipboard = copyToClipboard;
 window.exportPedidosExcel = exportPedidosExcel;
 window.exportClientesExcel = exportClientesExcel;
 window.cargarDatos = cargarDatos;
+window.filterProducts = filterProducts;
+window.renderProducts = renderProducts;
 
 // ESTADO GLOBAL
 const STATE = {
@@ -234,6 +242,7 @@ async function aplicarFiltros() {
     renderKanban();
     renderList();
     renderProduction();
+    renderProducts(); // Keep catalog updated if visible
     actualizarMetricasDOM();
 
     if (!document.getElementById('view-dashboard').classList.contains('hidden')) {
@@ -731,20 +740,25 @@ async function renderProducts() {
     console.log("Rendering products...");
     const tbody = document.getElementById('productos-list-body');
     if (!tbody) {
-        console.error("Target tbody #productos-list-body not found!");
+        alert("CRITICAL ERROR: No se encontró el elemento #productos-list-body en el DOM.");
         return;
     }
 
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-yummy-brown"></i></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10"><i class="fas fa-spinner fa-spin text-4xl text-yummy-brown"></i><p class="mt-2 text-xs text-gray-400">Cargando catálogo...</p></td></tr>`;
 
     try {
+        console.log("Fetching products and categories from Firebase...");
         const [products, categories] = await Promise.all([
             ProductsManager.loadProducts(),
             ProductsManager.loadCategories()
         ]);
+        alert("Firebase respondió: " + products.length + " productos encontrados.");
 
         STATE.productsRaw = products;
         STATE.categories = categories;
+
+        console.log("Products loaded:", products.length);
+        console.log("Categories loaded:", categories.length);
 
         updateCategoryDropdowns();
 
@@ -837,8 +851,9 @@ function updateCategoryDropdowns() {
     }
 }
 
-window.filterProducts = function (val) {
-    STATE.productFilter = val;
+window.filterProducts = function (cat) {
+    console.log("Filtering by:", cat);
+    STATE.productFilter = cat;
     renderProducts();
 }
 

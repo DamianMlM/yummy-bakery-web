@@ -679,33 +679,35 @@
                         <p class="text-xs text-gray-500">Gestiona tus productos y menús</p>
                     </div>
 
-                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                    <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                         <!-- Filter -->
-                        <div class="relative flex-1 sm:flex-none">
-                            <select id="filter-category" onchange="filterProducts(this.value)"
-                                class="w-full bg-white border border-gray-200 text-xs py-2 px-4 pr-8 rounded-xl focus:outline-none focus:border-yummy-accent shadow-sm appearance-none">
-                                <option value="all">Todas</option>
+                        <div class="relative w-full sm:w-48">
+                            <select id="filter-category" onchange="window.filterProducts(this.value)"
+                                class="w-full bg-white border-2 border-yummy-accent/20 text-xs py-3 px-4 pr-10 rounded-2xl focus:outline-none focus:border-yummy-accent shadow-sm appearance-none font-bold text-gray-700">
+                                <option value="all">📁 Todas las Categorías</option>
                             </select>
                             <div
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-                                <i class="fas fa-filter text-[10px]"></i>
+                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-yummy-accent">
+                                <i class="fas fa-chevron-down text-sm"></i>
                             </div>
                         </div>
 
-                        <button onclick="abrirModalCategorias()"
-                            class="flex-1 sm:flex-none bg-white text-yummy-brown border border-yummy-brown px-3 py-2 rounded-xl text-xs font-bold hover:bg-orange-50 transition-all flex items-center justify-center gap-2">
-                            <i class="fas fa-layer-group"></i> <span class="hidden sm:inline">Categorías</span>
-                        </button>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <button onclick="window.abrirModalCategorias()"
+                                class="flex-1 sm:flex-none bg-white text-yummy-brown border-2 border-yummy-brown/20 px-4 py-3 rounded-2xl text-xs font-bold hover:bg-orange-50 transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-layer-group"></i> <span>Categorías</span>
+                            </button>
 
-                        <button onclick="abrirModalToppings()"
-                            class="flex-1 sm:flex-none bg-white text-yummy-brown border border-yummy-brown px-3 py-2 rounded-xl text-xs font-bold hover:bg-orange-50 transition-all flex items-center justify-center gap-2">
-                            <i class="fas fa-cookie-bite"></i> <span class="hidden sm:inline">Toppings</span>
-                        </button>
+                            <button onclick="window.abrirModalToppings()"
+                                class="flex-1 sm:flex-none bg-white text-yummy-brown border-2 border-yummy-brown/20 px-4 py-3 rounded-2xl text-xs font-bold hover:bg-orange-50 transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-cookie-bite"></i> <span>Toppings</span>
+                            </button>
 
-                        <button onclick="abrirModalProducto()"
-                            class="flex-1 sm:flex-none bg-yummy-brown text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
-                            <i class="fas fa-plus"></i> <span>Añadir</span>
-                        </button>
+                            <button onclick="window.abrirModalProducto()"
+                                class="flex-1 sm:flex-none bg-yummy-brown text-white px-5 py-3 rounded-2xl text-xs font-bold shadow-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-plus"></i> <span class="hidden sm:inline">Añadir</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
