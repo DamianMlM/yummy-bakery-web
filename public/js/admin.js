@@ -681,7 +681,7 @@ function renderProduction() {
 // ==========================================
 // 🕹️ INTERACCION
 // ==========================================
-window.switchView = function (view) {
+function switchView(view) {
     console.log("Switching to view:", view);
     // Hide all views
     document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
@@ -729,6 +729,7 @@ window.switchView = function (view) {
         renderProduction();
     }
 }
+window.switchView = switchView;
 
 // ==========================================
 // 🍎 PRODUCTOS CRUD
@@ -846,14 +847,14 @@ function updateCategoryDropdowns() {
     }
 }
 
-window.filterProducts = function (cat) {
+function filterProducts(cat) {
     console.log("Filtering by:", cat);
     STATE.productFilter = cat;
     renderProducts();
 }
 
 // Modal & Form Handling
-window.abrirModalProducto = function (id = null) {
+async function abrirModalProducto(id = null) {
     const modal = document.getElementById('modal-producto');
     const form = document.getElementById('form-producto');
 
@@ -880,15 +881,15 @@ window.abrirModalProducto = function (id = null) {
     modal.classList.remove('hidden');
 }
 
-window.cerrarModalProducto = function () {
+function cerrarModalProducto() {
     document.getElementById('modal-producto').classList.add('hidden');
 }
 
-window.editarProducto = function (id) {
+function editarProducto(id) {
     abrirModalProducto(id);
 }
 
-window.eliminarProducto = async function (id, imgUrl) {
+async function eliminarProducto(id, imgUrl) {
     Swal.fire({
         title: '¿Eliminar producto?',
         text: "No podrás revertir esto",
@@ -1001,13 +1002,13 @@ window.removeImage = function () {
 // ==========================================
 // 📂 CATEGORIAS MANAGEMENT logic
 // ==========================================
-window.abrirModalCategorias = async function () {
+async function abrirModalCategorias() {
     const modal = document.getElementById('modal-categorias');
     modal.classList.remove('hidden');
     renderCategoriesList();
 }
 
-window.cerrarModalCategorias = function () {
+function cerrarModalCategorias() {
     document.getElementById('modal-categorias').classList.add('hidden');
     // Refresh main view to update dropdowns in case changes happened
     if (STATE.productFilter !== 'all') { /* handle? */ }
