@@ -7,6 +7,7 @@ admin.initializeApp();
 /** 
  * CONFIGURACION SMTP 
  * Se usan variables de entorno desde el archivo .env en la carpeta functions/
+ * Credenciales actualizadas: 2026-01-29
  */
 const gmailEmail = process.env.SMTP_USER || "";
 const gmailPassword = process.env.SMTP_PASS || "";
