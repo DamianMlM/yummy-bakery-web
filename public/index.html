@@ -722,9 +722,21 @@
           return `Y-${nextValue}`;
         });
 
+        // Helper: Get local datetime in ISO format (sin conversión UTC)
+        function getLocalISOString() {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          const hours = String(now.getHours()).padStart(2, '0');
+          const minutes = String(now.getMinutes()).padStart(2, '0');
+          const seconds = String(now.getSeconds()).padStart(2, '0');
+          return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+        }
+
         var orden = {
           folio: nestedFolio,
-          fecha: new Date().toISOString(),
+          fecha: getLocalISOString(),
           cliente: { nombre: nom, tel: tel, email: document.getElementById('cli-email').value, direccion: (metodoEntrega === 'envio' ? dir : 'Recoger en tienda') },
           metodo: metodoEntrega, pago: metodoPago, observaciones: obs,
           items: carrito.map(c => ({ categoria: c.cat, nombre: c.nom, precioBase: c.base, cantidad: c.qty, extrasTexto: c.xTxt, subtotal: c.sub })),
@@ -737,7 +749,7 @@
         if (email) {
           const clientRef = doc(db, "clientes", email.toLowerCase());
           const clientSnap = await getDoc(clientRef);
-          const now = new Date().toISOString();
+          const now = getLocalISOString();
 
           if (clientSnap.exists()) {
             await setDoc(clientRef, {

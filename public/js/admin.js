@@ -1,12 +1,13 @@
 import { db } from './firebase-config.js';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-import { seedDatabase, seedOrders, cleanupGhostData } from './seeder.js';
+import { seedDatabase, seedOrders, cleanupGhostData, cleanupOrders } from './seeder.js';
 import { ProductsManager } from './products-manager.js';
 
-// Expose SEEDERS
-window.seedDatabase = seedDatabase;
-window.seedOrders = seedOrders;
-window.cleanupGhostData = cleanupGhostData;
+// Expose SEEDERS (COMENTADO PARA PRODUCCIÓN - Descomentar solo en desarrollo)
+// window.seedDatabase = seedDatabase;
+// window.seedOrders = seedOrders;
+// window.cleanupGhostData = cleanupGhostData;
+// window.cleanupOrders = cleanupOrders;
 window.renderProduction = renderProduction;
 window.abrirModalToppings = abrirModalToppings;
 window.cerrarModalToppings = cerrarModalToppings;
@@ -24,6 +25,17 @@ window.cargarDatos = cargarDatos;
 window.filterProducts = filterProducts;
 window.renderProducts = renderProducts;
 window.toggleStoreStatus = toggleStoreStatus;
+window.renderList = renderList;
+window.renderKanban = renderKanban;
+
+// Helper: Get local date in YYYY-MM-DD format (sin conversión UTC)
+function getLocalDateString() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
 // ESTADO GLOBAL
 const STATE = {
@@ -38,8 +50,8 @@ const STATE = {
     productsRaw: [], // Products cache
     productFilter: 'all', // Current filter
     range: {
-        start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0], // Últimos 30 días
-        end: new Date().toISOString().split('T')[0]
+        start: getLocalDateString(), // Solo el día de hoy (hora local)
+        end: getLocalDateString()
     }
 };
 

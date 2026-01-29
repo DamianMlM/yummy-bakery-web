@@ -69,3 +69,8 @@ node_modules/
 .dataconnect
 public/js/config.js
 MAINTENANCE.md
+
+# Development/Testing files (no publicar en producción)
+public/js/seeder.js
+test_api.js
+test_regex.js

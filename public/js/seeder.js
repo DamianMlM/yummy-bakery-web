@@ -210,5 +210,54 @@ async function cleanupGhostData() {
     }
 }
 
-export { seedDatabase, seedOrders, cleanupGhostData };
+async function cleanupOrders() {
+    const result = await Swal.fire({
+        title: '⚠️ ¿Eliminar TODOS los pedidos?',
+        text: 'Esta acción NO se puede deshacer. Se borrarán todos los pedidos de la base de datos.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar todo',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) return;
+
+    console.log("🧹 Limpiando todos los pedidos...");
+
+    try {
+        const ordersSnapshot = await getDocs(collection(db, "pedidos"));
+
+        if (ordersSnapshot.empty) {
+            Swal.fire('Info', 'No hay pedidos para eliminar.', 'info');
+            return;
+        }
+
+        const batch = writeBatch(db);
+        let count = 0;
+
+        ordersSnapshot.forEach((doc) => {
+            batch.delete(doc.ref);
+            count++;
+        });
+
+        await batch.commit();
+
+        console.log(`✅ ${count} pedidos eliminados exitosamente.`);
+        Swal.fire({
+            icon: 'success',
+            title: '¡Listo!',
+            text: `Se eliminaron ${count} pedidos de la base de datos.`,
+            timer: 2000
+        });
+
+        location.reload();
+    } catch (error) {
+        console.error("❌ Error al eliminar pedidos:", error);
+        Swal.fire('Error', 'No se pudieron eliminar los pedidos: ' + error.message, 'error');
+    }
+}
+
+export { seedDatabase, seedOrders, cleanupGhostData, cleanupOrders };
 
